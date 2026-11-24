@@ -822,7 +822,7 @@ const S = {
   q:"", cfilter:"active", day: today(), dayInst:"all", year:new Date().getFullYear(), month:new Date().getMonth(),
   expMonth: today().slice(0,7), socialClient:null, socialPhoto:null, socialZoom:1, socialX:0, socialY:0, socialMode:"passed"
 };
-const cfg = () => { const s=S.settings||{}; return {...DEFAULTS,...s, prices:{...DEFAULTS.prices,...(s.prices||{})}}; };
+const cfg = () => { const s=S.settings||{}; return {...DEFAULTS,...s, prices:{...DEFAULTS.prices,...(s.prices||{})}, extraRates:{...(s.extraRates||{})}}; };
 const client = id => S.clients.find(c=>c.id===id);
 const instOf = (c) => c?.instructor || "";
 
@@ -1126,7 +1126,7 @@ function vClient(){
        <div><div class="big orange num" style="font-size:24px">${money0(Math.max(0,t.balance))}</div><div class="muted small">${t.balance<-0.009?"Credit "+money0(-t.balance):"Left to pay"}</div></div>
      </div>
      <div style="margin-top:18px" class="bar"><i style="width:${pct}%"></i></div>
-     <div class="row between small" style="margin-top:12px"><span class="muted">Package total ${money(t.total)} · Theory attended: ${num(c.theoryTaken)}</span>
+     <div class="row between small" style="margin-top:12px"><span class="muted">Total ${money(t.total)}${extraCount(c)?` · incl. ${extraCount(c)} extra lesson${extraCount(c)>1?"s":""}`:""} · Theory attended: ${num(c.theoryTaken)}</span>
        <span class="row" style="gap:6px"><button class="btn sm" data-act="lessonsAdj" data-id="${esc(c.id)}" data-v="-1" aria-label="Remove a lesson">−1</button>
        <button class="btn sm primary" data-act="lessonsAdj" data-id="${esc(c.id)}" data-v="1">+1 lesson taken</button></span></div>
    </div>
@@ -1134,7 +1134,7 @@ function vClient(){
    <div class="grid g4">
      <button class="btn primary" data-act="payNew" data-id="${esc(c.id)}">${ic("coin")} Add payment</button>
      <button class="btn" data-act="lessonNew" data-id="${esc(c.id)}">${ic("cal")} Schedule lesson</button>
-     <button class="btn" data-act="chargeNew" data-id="${esc(c.id)}">${ic("plus")} Extra charge</button>
+     <button class="btn" data-act="extraNew" data-id="${esc(c.id)}">${ic("plus")} Extra lessons</button>
      <button class="btn" data-act="socialFor" data-id="${esc(c.id)}">${ic("camera")} Social post</button>
    </div>
 
@@ -1351,9 +1351,9 @@ function vSettings(){
      <div class="field"><label for="s_basis">Count omzet when</label><select id="s_basis" name="obBasis">${opt("cash","Payment is received (cash basis)",k.obBasis)}${opt("invoice","Invoice is issued (invoice basis)",k.obBasis)}</select></div>
     </div></div>
    <div class="card grid" style="gap:14px"><h3>Package prices (XCG)</h3>
-    <div class="table-wrap"><table><thead><tr><th>Vehicle</th>${PKG_LESSONS.map((n,i)=>`<th>Pakete ${i+1} · ${n}x</th>`).join("")}</tr></thead><tbody>
-    ${Object.keys(VEH).map(v=>`<tr><td><b>${esc(VEH[v].name)}</b><div class="small muted">${esc(VEH[v].trans)} · ${esc(VEH[v].lic)}</div></td>${k.prices[v].map((p,i)=>`<td><input type="number" id="p_${v}_${i}" name="p_${v}_${i}" value="${esc(p)}" style="width:110px" aria-label="${esc(VEH[v].name)} Pakete ${i+1}"></td>`).join("")}</tr>`).join("")}
-    </tbody></table></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Vehicle</th>${PKG_LESSONS.map((n,i)=>`<th>Pakete ${i+1} · ${n}x</th>`).join("")}<th>Extra lesson (each)</th></tr></thead><tbody>
+    ${Object.keys(VEH).map(v=>`<tr><td><b>${esc(VEH[v].name)}</b><div class="small muted">${esc(VEH[v].trans)} · ${esc(VEH[v].lic)}</div></td>${k.prices[v].map((p,i)=>`<td><input type="number" id="p_${v}_${i}" name="p_${v}_${i}" value="${esc(p)}" style="width:110px" aria-label="${esc(VEH[v].name)} Pakete ${i+1}"></td>`).join("")}<td><input type="number" id="x_${v}" name="x_${v}" value="${esc(k.extraRates[v]??"")}" placeholder="Set rate" min="0" step="0.01" style="width:110px" aria-label="${esc(VEH[v].name)} extra lesson rate"></td></tr>`).join("")}
+    </tbody></table></div><div class="hint small muted">The extra lesson rate is the price per lesson when a client buys lessons on top of their package.</div></div>
    <div class="card grid" style="gap:14px"><h3>Messages</h3>
     <div class="field"><label for="s_rem">WhatsApp lesson reminder</label><textarea id="s_rem" name="reminder">${esc(k.reminder)}</textarea><span class="hint">Placeholders: {name} {date} {time} {instructor} {vehicle}</span></div>
     <div class="field"><label for="s_cap">Social media caption</label><textarea id="s_cap" name="caption" rows="6">${esc(k.caption)}</textarea><span class="hint">Placeholders: {name} {first} {license} {vehicle} {transmission} {instructor}</span></div>
@@ -1482,6 +1482,30 @@ function payNew(id){
     <div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn primary" data-act="savePay" data-id="${esc(c.id)}">${ic("check")} Save payment</button></div>
    </form>`);
 }
+function extraCount(c){ return S.invoices.filter(i=>i.clientId===c.id&&i.type==="invoice"&&!i.void).reduce((a,i)=>a+num(i.extraLessons),0); }
+function extraNew(id){
+  const c=client(id); const rate=cfg().extraRates[c.vehicle]; const t=totals(c);
+  openModal(`${head("Extra lessons", esc(c.name)+" · "+esc(VEH[c.vehicle]?.name||"")+" · open balance "+money(Math.max(0,t.balance)))}
+   <form id="exf" class="grid" style="gap:14px" onsubmit="return false">
+    <div class="grid g3 stack">
+     <div class="field"><label for="ex_n">Number of extra lessons</label><input type="number" id="ex_n" name="n" min="1" max="50" step="1" value="1" data-in="extraCalc"></div>
+     <div class="field"><label for="ex_r">Rate per lesson (XCG)</label><input type="number" id="ex_r" name="rate" min="0" step="0.01" value="${esc(rate??"")}" placeholder="0.00" data-in="extraCalc">${rate===""||rate==null?`<span class="hint">Tip: save your rate in Settings so it fills in by itself.</span>`:""}</div>
+     <div class="field"><label for="ex_d">Date</label><input type="date" id="ex_d" name="date" value="${today()}"></div>
+    </div>
+    <div class="grid g2 stack">
+     <div class="field"><label for="ex_p">Paid now (optional, XCG)</label><input type="number" id="ex_p" name="paid" min="0" step="0.01" placeholder="0.00" data-in="extraCalc"></div>
+     <div class="field"><label for="ex_m">Payment method</label><select id="ex_m" name="method">${METHODS.map(m=>opt(m,m,"Cash")).join("")}</select></div>
+    </div>
+    <div class="card night"><div class="row between"><span class="muted">Extra lessons total</span><b class="big orange num" id="ex_total" style="font-size:26px">${money(0)}</b></div>
+     <div class="row between small" style="margin-top:8px"><span class="muted">Open balance after this</span><span class="num" id="ex_after">${money(Math.max(0,t.balance))}</span></div></div>
+    <div class="small muted">Creates an invoice for the extra lessons and adds them to ${esc(firstName(c.name))}'s lessons. A payment gets its own receipt.</div>
+    <div class="row between"><button class="btn ghost" data-act="chargeNew" data-id="${esc(c.id)}">Other charge (exam re-take…)</button><button class="btn primary" data-act="saveExtra" data-id="${esc(c.id)}">${ic("check")} Add extra lessons</button></div>
+   </form>`);
+  extraCalc();
+}
+function extraCalc(){ const f=$("#exf"); if(!f) return; const c=client($("[data-act=saveExtra]").dataset.id); const v=formVals(f);
+  const total=Math.max(0,Math.round(num(v.n)))*num(v.rate); const t=totals(c);
+  $("#ex_total").textContent=money(total); $("#ex_after").textContent=money(Math.max(0,t.balance+total-num(v.paid))); }
 function chargeNew(id){
   const c=client(id);
   openModal(`${head("Extra charge", "Creates a new invoice for "+esc(c.name))}
@@ -1693,11 +1717,23 @@ const ACT = {
   payDelAsk: ds=>{ const p=S.payments.find(x=>x.id===ds.id); openModal(`${head("Delete payment?")}<div>Delete the payment of <b>${money(p.amount)}</b> from ${esc(niceDate(p.date))}? Its receipt is deleted too.</div><div class="row between"><button class="btn ghost" data-act="close">Keep</button><button class="btn danger" data-act="payDel" data-id="${esc(p.id)}">Delete payment</button></div>`); },
   payDel: async ds=>{ const p=S.payments.find(x=>x.id===ds.id); if(await safe(async()=>{ await remove("payments",p.id); if(p.receiptId) await remove("invoices",p.receiptId); },"Payment deleted")) closeModal(); },
   chargeNew: ds=> chargeNew(ds.id),
-  saveCharge: async (ds,el)=>{ const v=formVals($("#chf")); const a=num(v.amount); if(a<=0||!v.desc.trim()) return toast("Enter a description and amount"); const c=client(ds.id); el.disabled=true;
-    const ok=await safe(async()=>{ await createInvoice(c,[{desc:v.desc.trim(),amount:a}],v.date||today()); const n=Math.round(num(v.lessons)); if(n>0) await patch("clients",c.id,{lessonsIncluded:num(c.lessonsIncluded)+n}); },"Invoice created");
+  extraNew: ds=> extraNew(ds.id),
+  saveExtra: async (ds,el)=>{ const v=formVals($("#exf")); const n=Math.round(num(v.n)), rate=num(v.rate), paid=Math.round(num(v.paid)*100)/100;
+    if(n<1) return toast("Enter how many extra lessons"); if(rate<=0) return toast("Enter the rate per lesson");
+    const c=client(ds.id); const amount=Math.round(n*rate*100)/100; const date=v.date||today(); el.disabled=true;
+    const ok=await safe(async()=>{
+      const t=totals(c);
+      await createInvoice(c,[{desc:`${n}x extra les praktiko - ${VEH[c.vehicle]?.name||""}`, amount, sub:`${n} × ${money(rate)} per lesson`}], date, {extraLessons:n, rate});
+      await patch("clients",c.id,{lessonsIncluded:num(c.lessonsIncluded)+n});
+      if(paid>0) await recordPayment(c, paid, date, v.method||"Cash", "Extra lessons", {total:t.total+amount, paid:t.paid});
+    }, `${n} extra lesson${n>1?"s":""} added · invoice created`);
     if(ok) closeModal(); else el.disabled=false; },
-  voidAsk: ds=>{ const i=S.invoices.find(x=>x.id===ds.id); openModal(`${head("Void invoice "+esc(i.number)+"?")}<div>The invoice stays on file marked VOID and no longer counts toward what the client owes.</div><div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn danger" data-act="voidYes" data-id="${esc(i.id)}">Void invoice</button></div>`); },
-  voidYes: async ds=>{ if(await safe(()=>patch("invoices",ds.id,{void:true, voidedAt:today()}),"Invoice voided")) closeModal(); },
+  saveCharge: async (ds,el)=>{ const v=formVals($("#chf")); const a=num(v.amount); if(a<=0||!v.desc.trim()) return toast("Enter a description and amount"); const c=client(ds.id); el.disabled=true;
+    const ok=await safe(async()=>{ const n=Math.round(num(v.lessons)); await createInvoice(c,[{desc:v.desc.trim(),amount:a}],v.date||today(), n>0?{extraLessons:n}:{}); if(n>0) await patch("clients",c.id,{lessonsIncluded:num(c.lessonsIncluded)+n}); },"Invoice created");
+    if(ok) closeModal(); else el.disabled=false; },
+  voidAsk: ds=>{ const i=S.invoices.find(x=>x.id===ds.id); openModal(`${head("Void invoice "+esc(i.number)+"?")}<div>The invoice stays on file marked VOID and no longer counts toward what the client owes.${num(i.extraLessons)?` The ${num(i.extraLessons)} extra lesson${num(i.extraLessons)>1?"s are":" is"} taken off the client's lessons.`:""}</div><div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn danger" data-act="voidYes" data-id="${esc(i.id)}">Void invoice</button></div>`); },
+  voidYes: async ds=>{ const inv=S.invoices.find(x=>x.id===ds.id); const c=inv&&client(inv.clientId);
+    if(await safe(async()=>{ await patch("invoices",ds.id,{void:true, voidedAt:today()}); if(c&&num(inv.extraLessons)>0) await patch("clients",c.id,{lessonsIncluded:Math.max(0,num(c.lessonsIncluded)-num(inv.extraLessons))}); },"Invoice voided")) closeModal(); },
   dlDoc: ds=>{ const i=S.invoices.find(x=>x.id===ds.id); if(!window.jspdf) return toast("PDF tool is still loading. Try again."); saveFile(`${i.number} ${i.clientName}.pdf`.replace(/[\/\\:*?"<>|]/g,""), docPdf(i)); },
   lessonNew: ds=>{ lessonModal(ds.id||null,null); },
   lessonEdit: ds=> lessonModal(null, ds.id),
@@ -1772,7 +1808,7 @@ const ACT = {
   socialCopy: ()=> copy($("#socCap").value,"Caption copied"),
   socialPosted: ()=>{ const c=client(S.socialClient); safe(()=>patch("clients",c.id,{posted:!c.posted,postedAt:!c.posted?today():""}), !c.posted?"Marked as posted":"Marked as not posted"); },
   saveSettings: async ()=>{ const v=formVals($("#setForm")); const prices={}; Object.keys(VEH).forEach(k=>prices[k]=[0,1,2,3].map(i=>num(v[`p_${k}_${i}`])));
-    const p={business:v.business,phone:v.phone,address:v.address,email:v.email,kvk:v.kvk,crib:v.crib,bank:v.bank,invoicePrefix:(v.invoicePrefix||"TA").trim(),obRate:num(v.obRate),obBasis:v.obBasis,reminder:v.reminder,caption:v.caption,prices};
+    const p={business:v.business,phone:v.phone,address:v.address,email:v.email,kvk:v.kvk,crib:v.crib,bank:v.bank,invoicePrefix:(v.invoicePrefix||"TA").trim(),obRate:num(v.obRate),obBasis:v.obBasis,reminder:v.reminder,caption:v.caption,prices,extraRates:Object.fromEntries(Object.keys(VEH).map(k=>[k,v[`x_${k}`]===""?"":num(v[`x_${k}`])]))};
     await safe(()=>saveSettings(p),"Settings saved"); },
   tplUpload: async ()=>{ const f=await pickFile("image/png"); if(!f) return; toast("Uploading template…"); await safe(async()=>{ const r=await assets.upload(f,{type:"image/png"}); await saveSettings({templateId:r.id, photoBox:cfg().photoBox||DEFAULTS.photoBox}); },"Template saved"); },
   tplRemove: ()=> safe(()=>saveSettings({templateId:null}),"Using built-in template"),
@@ -1808,6 +1844,7 @@ document.addEventListener("input", e=>{
   const k=e.target.dataset.in; if(!k) return;
   if(k==="q"){ S.q=e.target.value; const l=$("#clist"), list=filteredClients(); if(l && list.length) l.innerHTML=list.map(clientRow).join(""); else render(); }
   else if(k==="wizPaid") wizLeft();
+  else if(k==="extraCalc") extraCalc();
   else if(k.startsWith("social")){ S[k]=Number(e.target.value); drawSocial(); }
 });
 document.addEventListener("change", e=>{
