@@ -20,11 +20,20 @@ The team workspace for **Trusty Autorijschool**, built for the instructors (Raic
 | `index.html` | The whole app: layout, styling and logic in one file |
 | `assets/trusty-logo.png` | Trusty logo with a transparent background |
 | `assets/icon-512.png`, `assets/icon-192.png`, `assets/apple-touch-icon.png` | App icons for the home screen |
+| `hostinger/` | Server side for Hostinger: PHP API, login, one-time setup, and `shim.js`, which connects the app to the server |
+| `build-hostinger.sh` | Builds `dist/trusty-ofisina-hostinger.zip`, ready to upload |
+| `HOSTINGER.md` | Step-by-step install guide for Hostinger |
 
-## Where it runs today
+## Where it runs
 
-The app is published as a Claude artifact. Claude provides the shared database, photo storage and file downloads. Opened as a plain file or on another host, the app shows its design but can't save data.
+**Claude:** published as a Claude artifact. Claude provides the shared database, photo storage and file downloads.
 
-A Hostinger version with its own database, uploads folder and logins is planned. It will replace the Claude-specific parts (`claude.use("db")`, `claude.use("assets")`, `claude.use("downloads")`) and keep the same design and features.
+**Hostinger:** the same `index.html` runs on PHP and MySQL. `hostinger/shim.js` provides the database, uploads and downloads that Claude provides otherwise, so the app code is shared. Build the upload package with:
 
-No client data is stored in this repository; it lives only in the app's database.
+```bash
+./build-hostinger.sh
+```
+
+Then follow [HOSTINGER.md](HOSTINGER.md). Move data between the two with **Settings → Backup**.
+
+No client data, passwords or database details are stored in this repository. `config.php` (created on the server by `setup.php`) is ignored by git.

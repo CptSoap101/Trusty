@@ -1,0 +1,2 @@
+# Uploaded receipts and client photos: only api.php may read these, never the browser directly.
+Require all denied

@@ -772,7 +772,8 @@ const relDay = s => { const t=today(); if(s===t) return "Today"; if(s===addDays(
 const initials = n => (n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
 const firstName = n => (n||"").trim().split(/\s+/)[0]||"";
 const shortName = n => { const p=(n||"").trim().split(/\s+/); return p.length>1? p[0]+" "+p[p.length-1][0]+".":p[0]||""; };
-const blobUrl = id => "/_blob/"+id;
+const HOST = window.TRUSTY || null; // set by the Hostinger version (index.php); absent inside Claude
+const blobUrl = id => HOST && HOST.fileUrl ? HOST.fileUrl + encodeURIComponent(id) : "/_blob/"+id;
 const fill = (tpl,map)=>String(tpl||"").replace(/\{(\w+)\}/g,(m,k)=> k in map ? map[k] : m);
 const waNumber = p => { let d=String(p||"").replace(/\D/g,""); if(!d) return ""; if(d.startsWith("00")) d=d.slice(2); if(d.length===7) d="5999"+d; else if(d.length===8 && d.startsWith("9")) d="599"+d; return d; };
 const csvCell = v => { const s=String(v??""); return /[",\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
@@ -817,7 +818,7 @@ const S = {
   clients:[], payments:[], lessons:[], expenses:[], invoices:[], settings:{},
   ready:{}, offline:false,
   view: lsGet("tr.view","home"), clientId:null,
-  me: lsGet("tr.me",""), mineOnly: lsGet("tr.mine",false),
+  me: (HOST && HOST.me) || lsGet("tr.me",""), mineOnly: lsGet("tr.mine",false),
   q:"", cfilter:"active", day: today(), dayInst:"all", year:new Date().getFullYear(), month:new Date().getMonth(),
   expMonth: today().slice(0,7), socialClient:null, socialPhoto:null, socialZoom:1, socialX:0, socialY:0, socialMode:"passed"
 };
@@ -947,7 +948,7 @@ function render(){
   const a=document.activeElement, aid=a&&a.id&&$("#main").contains(a)?a.id:null, ss=aid&&a.selectionStart!=null?[a.selectionStart,a.selectionEnd]:null;
   const V = {home:vHome, clients:vClients, client:vClient, schedule:vSchedule, finance:vFinance, expenses:vExpenses, social:vSocial, settings:vSettings}[S.view]||vHome;
   let banner="";
-  if(S.offline) banner=`<div class="banner">Can't reach the shared database from this view. Open this page in Claude while signed in to see and save your data.</div>`;
+  if(S.offline) banner = HOST ? `<div class="banner">Can't reach the server. Check your internet connection and reload the page.</div>` : `<div class="banner">Can't reach the shared database from this view. Open this page in Claude while signed in to see and save your data.</div>`;
   $("#main").innerHTML = `<div class="wrap${S.anim?" enter":""}">${banner}${V()}</div>`; S.anim=false;
   syncNav();
   if(aid){ const el=document.getElementById(aid); if(el){ el.focus(); if(ss) try{el.setSelectionRange(ss[0],ss[1]);}catch(e){} } }
@@ -1363,7 +1364,12 @@ function vSettings(){
     <div class="small muted">In Canva: open your template, make the photo area transparent (delete the photo), then Share → Download → PNG with <b>transparent background</b>, size 1080 × 1350. Upload it here and every client photo is placed behind it.</div>
     <div class="row"><button class="btn" data-act="tplUpload" ${assets?"":"disabled"}>${ic("up")} ${k.templateId?"Replace template":"Upload template PNG"}</button>${k.templateId?`<button class="btn danger" data-act="tplRemove">Use built-in template</button>`:""}</div>
     ${k.templateId?`<div class="grid g4">${["x","y","w","h"].map(f=>`<div class="field"><label for="pb_${f}">Photo area ${f.toUpperCase()}</label><input type="number" id="pb_${f}" value="${esc((k.photoBox||{})[f]??"")}" data-pb="${f}"></div>`).join("")}</div><div class="hint small muted">Pixels on the 1080 × 1350 canvas where the photo should sit. Default fills the whole post.</div><div><button class="btn sm" data-act="savePb">Save photo area</button></div>`:""}
-  </div>`;
+  </div>
+  <div class="card grid" style="gap:14px"><h3>Backup</h3>
+    <div class="small muted">Download all clients, payments, invoices, lessons, expenses and settings as one file. Keep a copy every week. Restore adds the records from a backup file to this app; use it to move to another host. Photos are not included in the file.</div>
+    <div class="row"><button class="btn dark" data-act="backupExport">${ic("down")} Download backup</button><button class="btn" data-act="backupImport">${ic("up")} Restore from backup</button></div>
+  </div>
+  ${HOST?`<div class="card row between"><div><h3>Signed in as ${esc(HOST.me||"")}</h3><div class="small muted">Log out when you use a shared computer.</div></div><a class="btn" href="${esc(HOST.logoutUrl||"logout.php")}">Log out</a></div>`:""}`;
 }
 
 /* ───────────────── modals: client wizard ───────────────── */
@@ -1770,6 +1776,18 @@ const ACT = {
     await safe(()=>saveSettings(p),"Settings saved"); },
   tplUpload: async ()=>{ const f=await pickFile("image/png"); if(!f) return; toast("Uploading template…"); await safe(async()=>{ const r=await assets.upload(f,{type:"image/png"}); await saveSettings({templateId:r.id, photoBox:cfg().photoBox||DEFAULTS.photoBox}); },"Template saved"); },
   tplRemove: ()=> safe(()=>saveSettings({templateId:null}),"Using built-in template"),
+  backupExport: ()=>{ const out={app:"trusty-ofisina",version:1,exportedAt:new Date().toISOString(),settings:S.settings||{}}; COLS.forEach(c=>out[c]=S[c]);
+    saveFile(`Trusty backup ${today()}.json`, JSON.stringify(out,null,1)); },
+  backupImport: async ()=>{ const f=await pickFile("application/json,.json"); if(!f) return;
+    let data; try{ data=JSON.parse(await f.text()); }catch(e){ return toast("That file isn't a Trusty backup."); }
+    if(!data || data.app!=="trusty-ofisina") return toast("That file isn't a Trusty backup.");
+    const n=COLS.reduce((a,c)=>a+((data[c]||[]).length),0);
+    openModal(`${head("Restore backup?", "From "+esc((data.exportedAt||"").slice(0,10)))}<div>This adds <b>${n}</b> records to this app. Records with the same ID are replaced by the version in the backup. Nothing else is deleted.</div><div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn primary" data-act="backupImportYes">Restore</button></div>`);
+    ACT._pendingImport=data; },
+  backupImportYes: async (ds,el)=>{ const data=ACT._pendingImport; if(!data) return; el.disabled=true; let done=0;
+    const ok=await safe(async()=>{ for(const c of COLS) for(const d of (data[c]||[])){ if(!d||!d.id) continue; const {id,...rest}=d; await put(c,String(id),{id,...rest}); done++; }
+      if(data.settings && Object.keys(data.settings).length) await db.doc("settings/main").set(data.settings); });
+    ACT._pendingImport=null; closeModal(); if(ok) toast(`Restored ${done} records`); },
   savePb: ()=>{ const pb={}; document.querySelectorAll("[data-pb]").forEach(i=>pb[i.dataset.pb]=num(i.value)); if(pb.w<=0||pb.h<=0) return toast("Width and height must be above 0"); safe(()=>saveSettings({photoBox:pb}),"Photo area saved"); }
 };
 function lessonsForSchedule(){ return S.lessons.filter(l=>l.date===S.day&&l.status!=="cancelled"&&(S.dayInst==="all"||l.instructor===S.dayInst)).sort((a,b)=>(a.time||"").localeCompare(b.time||"")); }

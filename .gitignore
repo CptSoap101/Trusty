@@ -1,0 +1,4 @@
+dist/
+hostinger/config.php
+hostinger/data/uploads/
+*.sqlite

@@ -1,0 +1,21 @@
+# Trusty Ofisina — Hostinger (Apache/LiteSpeed) rules
+Options -Indexes
+DirectoryIndex index.php
+
+# Never serve config, helpers, setup notes or data files directly.
+<FilesMatch "^(config\.php|config\.sample\.php|lib\.php|auth_page\.php|app\.html|README.*|.*\.md|.*\.sql|.*\.json|.*\.sqlite)$">
+    Require all denied
+</FilesMatch>
+<Files "manifest.webmanifest">
+    Require all granted
+</Files>
+
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+</IfModule>
+
+# Allow photo uploads up to 20 MB (works on most Hostinger plans).
+<IfModule mod_php.c>
+    php_value upload_max_filesize 20M
+    php_value post_max_size 22M
+</IfModule>
