@@ -1,0 +1,1807 @@
+<title>Trusty Ofisina</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+<meta name="apple-mobile-web-app-title" content="Trusty">
+<meta name="application-name" content="Trusty">
+<meta name="theme-color" content="#121418">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap">
+<style>
+/* Layout: desktop = slim sidebar + content column; phone = logo bar + content + floating pill nav. A live road scene runs along the bottom of the screen. Palette from the Trusty logo: road blue, asphalt, lane-line yellow. */
+:root{
+  color-scheme:light;
+  --bg:#FFFFFF; --surface:#FFFFFF; --surface-2:#F4F7FB; --line:#E6EBF2; --line-2:#D7DFEA;
+  --ink:#0C1220; --muted:#525C6E; --accent:#2F74D0; --accent-2:#18B4F5; --accent-deep:#1D4FA0; --accent-soft:#EDF4FE; --on-accent:#FFFFFF;
+  --lane:#FFD400; --lane-ink:#1B1B1D;
+  --night:#FFFFFF; --on-night:#0C1220; --night-muted:#667185; --night-line:#E6EBF2;
+  --good:#11845A; --good-soft:#E4F6EE; --warn:#A35F00; --warn-soft:#FFF4DA; --bad:#D0342C; --bad-soft:#FDE8E6;
+  --walk:#F1F4F8; --curb:#D8DFE8; --sky-a:#FFFFFF;
+  --grad:linear-gradient(135deg,#2F74D0 0%,#18B4F5 100%);
+  --f-display:"Nunito",ui-rounded,"SF Pro Rounded",system-ui,sans-serif; --f-body:"Nunito",ui-rounded,"SF Pro Rounded",system-ui,sans-serif; --f-mono:"Nunito",ui-rounded,system-ui,sans-serif;
+  --r-lg:22px; --r-md:16px; --r-sm:12px; --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.56,.64,1);
+  --shadow:0 1px 2px rgba(12,18,32,.04),0 8px 24px rgba(12,18,32,.06); --lift:0 10px 26px rgba(47,116,208,.28);
+  --glow:0 0 0 1px rgba(47,116,208,.14),0 14px 34px rgba(47,116,208,.14);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.02em}
+h1{font-size:clamp(34px,6vw,52px);font-weight:700;line-height:.98;letter-spacing:-.035em}
+h2{font-size:22px;font-weight:700}
+h3{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* shell */
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;padding:28px 16px;padding-left:max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:4px;border-right:1px solid var(--line);background:var(--surface)}
+.logo{display:flex;align-items:center;gap:10px;padding:0 10px 22px}
+.logo-mark{width:34px;height:34px;border-radius:11px;background:var(--accent);display:grid;place-items:center;color:var(--on-accent)}
+.logo b{font-family:var(--f-display);font-size:17px;letter-spacing:-.02em;display:block;line-height:1.1}
+.logo span{font-size:12px;color:var(--muted)}
+.nav-btn{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:14px;border:0;background:none;text-align:left;color:var(--muted);font-weight:500}
+.nav-btn:hover{background:var(--surface-2);color:var(--ink)}
+.nav-btn.on{background:var(--night);color:var(--on-night)}
+.nav-btn svg{width:20px;height:20px;flex:none}
+.side .who{margin-top:auto;padding:14px 10px 0;border-top:1px solid var(--line)}
+main{min-width:0;padding-block:32px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.bottom{display:none}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{display:none}
+  main{padding-top:20px}
+  .bottom{display:flex;position:fixed;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:8px;justify-content:space-around;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+  .bottom button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);padding:6px 8px;border-radius:14px;min-width:56px}
+  .bottom button svg{width:20px;height:20px}
+  .bottom button.on{color:var(--accent)}
+  .bottom .plus{width:48px;height:48px;min-width:48px;border-radius:50%;background:var(--night);color:var(--on-night);justify-content:center;padding:0}
+}
+
+/* building blocks */
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:860px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.g2.stack,.g3.stack{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;min-width:0}
+.card.soft{background:var(--surface-2);border-color:transparent}
+.card.night{background:var(--night);color:var(--on-night);border-color:var(--night-line)}
+.card.night .muted,.card.night .eyebrow{color:var(--night-muted)}
+.card.hot{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.card.hot .muted{color:rgba(255,255,255,.82)}
+.big{font-family:var(--f-display);font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.big.orange{color:var(--accent-2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:10px 16px;font-weight:600;font-size:14px;white-space:nowrap;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--ink)}
+.btn svg{width:17px;height:17px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.dark{background:var(--night);border-color:var(--night);color:var(--on-night)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.sm{padding:7px 12px;font-size:13px}
+.btn.danger{color:var(--bad);border-color:var(--bad-soft);background:var(--bad-soft)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.icon-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:inline-grid;place-items:center;flex:none;color:var(--ink);text-decoration:none}
+.icon-btn svg{width:18px;height:18px}
+.icon-btn:hover{border-color:var(--ink)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:500;white-space:nowrap}
+.chip.on{background:var(--night);color:var(--on-night);border-color:var(--night)}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.good{background:var(--good-soft);color:var(--good)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.hot{background:var(--accent-soft);color:var(--accent)}
+.pill.plain{background:var(--surface-2);color:var(--muted)}
+.vlabel{font-size:12px;font-weight:600;color:var(--accent)}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;min-width:0;text-align:left;width:100%}
+button.item:hover,.item.click:hover{border-color:var(--ink)}
+.item .grow{flex:1;min-width:0}
+.item .grow b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .end{text-align:right;flex:none}
+.avatar{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;background:var(--accent-soft);color:var(--accent);overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar.lg{width:76px;height:76px;font-size:26px}
+.time{font-family:var(--f-display);font-weight:700;font-size:17px;width:56px;flex:none}
+.bar{height:6px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.card.night .bar{background:var(--night-line)}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.stat-split{display:flex;gap:0}
+.stat-split>div{flex:1;padding:0 16px;border-left:1px solid var(--night-line);min-width:0}
+.stat-split>div:first-child{padding-left:0;border-left:0}
+.empty{border:1.5px dashed var(--line);border-radius:var(--r-md);padding:26px;text-align:center;color:var(--muted)}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.alert{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--line);text-align:left;width:100%}
+.alert .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none}
+.alert .dot svg{width:17px;height:17px}
+.table-wrap{overflow-x:auto;border-radius:var(--r-md);border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.r,th.r{text-align:right}
+tr:last-child td{border-bottom:0}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--surface-2)} tr.sel td{background:var(--accent-soft)}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:13px;font-weight:600}
+.field .hint{font-size:12px;color:var(--muted)}
+input[type=text],input[type=tel],input[type=number],input[type=date],input[type=time],input[type=search],select,textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:11px 12px;min-width:0}
+textarea{min-height:90px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search{position:relative;flex:1;min-width:200px}
+.search svg{position:absolute;left:14px;top:50%;width:17px;height:17px;transform:translateY(-50%);color:var(--muted)}
+.search input{padding-left:40px;border-radius:999px}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);width:100%;text-align:left}
+.switch{width:44px;height:26px;border-radius:99px;background:var(--line);position:relative;flex:none;transition:background .15s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on{background:var(--good)} .switch.on::after{transform:translateX(18px)}
+
+/* modal */
+#modal{position:fixed;inset:0;z-index:50;background:rgba(10,8,6,.45);display:flex;align-items:center;justify-content:center;padding:20px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.sheet{background:var(--bg);border-radius:28px;width:min(640px,100%);max-height:calc(100vh - 40px);overflow:auto;padding:24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+.sheet.wide{width:min(980px,100%)}
+@media (max-width:600px){#modal{align-items:flex-end;padding:0}.sheet{border-radius:28px 28px 0 0;max-height:92vh;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.steps{display:flex;gap:6px}.steps i{height:4px;flex:1;border-radius:4px;background:var(--line)}.steps i.on{background:var(--accent)}
+.pick{border:1.5px solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:16px;text-align:left;display:flex;flex-direction:column;gap:6px;position:relative;min-width:0}
+.pick:hover{border-color:var(--ink)}
+.pick.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.pick .price{font-family:var(--f-display);font-size:26px;font-weight:800;letter-spacing:-.03em}
+.pick .tag{position:absolute;top:12px;right:12px}
+.pick ul{margin:4px 0 0;padding:0;list-style:none;font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.veh-ico{width:44px;height:44px;border-radius:14px;background:var(--surface-2);display:grid;place-items:center}
+.veh-ico svg{width:24px;height:24px}
+.confirm-box{border:1px solid var(--bad-soft);background:var(--bad-soft);color:var(--ink);border-radius:var(--r-md);padding:14px;display:flex;flex-direction:column;gap:10px}
+
+#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--night);color:var(--on-night);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:calc(100vw - 32px)}
+@media (min-width:861px){#toast{bottom:28px}}
+.banner{padding:12px 16px;border-radius:var(--r-md);background:var(--warn-soft);color:var(--warn);font-weight:500;font-size:14px}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.thumb{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-md);overflow:hidden;text-align:left;padding:0;display:flex;flex-direction:column}
+.thumb:hover{border-color:var(--ink)}
+.thumb .ph{aspect-ratio:4/3;background:var(--surface-2);display:grid;place-items:center;color:var(--muted);overflow:hidden}
+.thumb .ph img{width:100%;height:100%;object-fit:cover}
+.thumb .meta{padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.wday{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:8px 4px;text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center}
+.wday b{font-family:var(--f-display);font-size:18px}
+.wday small{font-size:12px;color:var(--muted)}
+.wday.on{background:var(--night);color:var(--on-night);border-color:var(--night)}
+.wday.on small{color:var(--night-muted)}
+.wday .cnt{font-size:12px;font-weight:700;color:var(--accent);min-height:14px}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.chart .gl{stroke:var(--line)}
+.chart .rev{fill:var(--accent)} .chart .exp{fill:var(--ink);opacity:.82}
+.chart .hit{fill:transparent;cursor:pointer} .chart .hit:hover{fill:var(--surface-2)} .chart .hitsel{fill:var(--accent-soft)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+canvas.preview{width:100%;max-width:420px;height:auto;border-radius:18px;border:1px solid var(--line);display:block;background:var(--surface-2)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;text-align:right;font-weight:600}
+.split-top{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px}
+@media (max-width:860px){.split-top{grid-template-columns:minmax(0,1fr)}}
+.hide-sm{} @media (max-width:520px){.hide-sm{display:none}.stat-split .big{font-size:20px!important}.stat-split>div{padding:0 10px}.item.doc{flex-wrap:wrap}.item.doc .grow{flex:1 1 calc(100% - 60px)}.item.doc .end{margin-left:58px;flex:1;text-align:left}}
+
+/* ── brand + motion layer ── */
+.logo{flex-direction:column;align-items:stretch;gap:8px}
+.logo-tile{background:#fff;border-radius:18px;padding:12px 14px;border:1px solid var(--line);display:block}
+.logo-tile img{display:block;width:100%;height:auto}
+.logo small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-left:4px}
+.side{z-index:5}
+main{position:relative;z-index:2}
+#bottom{z-index:30}
+main{padding-bottom:24px}
+.btn,.chip,.icon-btn,.item,.pick,.nav-btn,.alert,.toggle,.thumb,.wday,.bottom button{position:relative;overflow:hidden;transition:transform .22s var(--ease),box-shadow .22s var(--ease),background-color .2s,border-color .2s,color .2s;-webkit-tap-highlight-color:transparent}
+.btn:hover,.icon-btn:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.btn.primary:hover{box-shadow:var(--lift)}
+.btn:active,.chip:active,.icon-btn:active,.pick:active,.wday:active,.bottom button:active{transform:scale(.95);transition-duration:.08s}
+button.item:hover,.item.click:hover,.alert:hover,.thumb:hover,.pick:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+button.item:active,.alert:active,.thumb:active,.toggle:active{transform:scale(.985)}
+.nav-btn:hover{transform:translateX(3px)}
+.nav-btn.on{box-shadow:inset 3px 0 0 var(--lane)}
+svg[class*="i-"]{transition:transform .25s var(--spring)}
+.btn:hover .i-right,.item:hover .i-right,.alert:hover .i-right{transform:translateX(3px)}
+.btn:hover .i-plus,.bottom .plus:hover .i-plus{transform:rotate(90deg)}
+.btn:hover .i-down{transform:translateY(2px)} .btn:hover .i-up{transform:translateY(-2px)}
+.btn:hover .i-chat{transform:rotate(-12deg) scale(1.08)}
+.bottom .plus{background:var(--accent);box-shadow:0 6px 18px rgba(47,116,208,.45)}
+.bottom button.on svg{animation:pop .45s var(--spring)}
+.switch::after{transition:transform .35s var(--spring)}
+.ripple{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.22;transform:scale(0);animation:ripple .6s var(--ease) forwards}
+@keyframes ripple{to{transform:scale(1);opacity:0}}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes rise{from{opacity:.001;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}}
+@keyframes fadeIn{from{opacity:0}}
+@keyframes sheetUp{from{opacity:0;transform:translateY(28px) scale(.98)}}
+.wrap.enter>*{animation:rise .55s var(--ease) both}
+.wrap.enter>*:nth-child(2){animation-delay:.04s}.wrap.enter>*:nth-child(3){animation-delay:.08s}.wrap.enter>*:nth-child(4){animation-delay:.12s}
+.wrap.enter>*:nth-child(5){animation-delay:.16s}.wrap.enter>*:nth-child(6){animation-delay:.2s}.wrap.enter>*:nth-child(n+7){animation-delay:.24s}
+.bar i{transform-origin:left center}
+.wrap.enter .bar i{animation:grow .9s .25s var(--ease) both}
+#modal:not([hidden]){animation:fadeIn .2s ease both;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#modal .sheet{animation:sheetUp .38s var(--ease) both}
+#toast.pop{animation:sheetUp .3s var(--spring) both}
+.card.hot,.card.night.road{position:relative;overflow:hidden}
+.card.hot{background:linear-gradient(135deg,var(--accent),#1F5FB8)}
+.card.hot::after,.card.night.road::after{content:"";position:absolute;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,var(--lane) 0 26px,transparent 26px 50px);animation:lane 1.6s linear infinite}
+.card.hot::after{bottom:0;opacity:.9}
+.card.night.road::after{top:0}
+@keyframes lane{to{background-position:50px 0}}
+.big.orange{color:var(--lane)}
+.card.night .bar i{background:var(--lane)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.wday.on{background:var(--accent);border-color:var(--accent)}
+.wday.on .cnt{color:var(--lane)}
+.vlabel{color:var(--accent)}
+h1 .hl{background:linear-gradient(transparent 62%,var(--lane) 62% 88%,transparent 88%);padding:0 4px;margin:0 -4px}
+
+/* ── road scene ── */
+.col{min-width:0;display:flex;flex-direction:column;min-height:100vh}
+.col main{flex:1}
+.scene{position:relative;flex:none;height:206px;pointer-events:none;overflow:hidden;margin-top:12px}
+@media (max-width:860px){.col{padding-bottom:0}.scene{height:calc(206px + 70px + env(safe-area-inset-bottom,0px))}.scene .walkway{bottom:calc(166px + env(safe-area-inset-bottom,0px))}.scene .asphalt{bottom:calc(70px + env(safe-area-inset-bottom,0px))}.scene .sign{bottom:calc(188px + env(safe-area-inset-bottom,0px))}.scene .ped{bottom:calc(174px + env(safe-area-inset-bottom,0px))}.scene .gantry{bottom:calc(70px + env(safe-area-inset-bottom,0px))}.scene::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(70px + env(safe-area-inset-bottom,0px));background:#C9D1DC}}
+.scene .fade{position:absolute;inset:0 0 auto;height:90px;background:linear-gradient(var(--bg),transparent)}
+.walkway{position:absolute;left:0;right:0;bottom:96px;height:28px;background:var(--walk);border-bottom:6px solid var(--curb)}
+.walkway::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 58px,rgba(0,0,0,.06) 58px 60px)}
+.asphalt{position:absolute;left:0;right:0;bottom:0;height:96px;background:#222327}
+.asphalt::before{content:"";position:absolute;left:0;right:0;top:46px;height:4px;background:repeating-linear-gradient(90deg,var(--lane) 0 34px,transparent 34px 64px)}
+.asphalt::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:2px;background:rgba(255,255,255,.55)}
+.zebra{position:absolute;bottom:8px;left:62%;width:54px;height:86px;background:repeating-linear-gradient(0deg,rgba(255,255,255,.8) 0 8px,transparent 8px 16px)}
+.veh{position:absolute;left:0;will-change:transform}
+.veh svg{display:block}
+.lane-a{bottom:50px}.lane-b{bottom:6px}
+.veh.r{animation:driveR var(--d,16s) linear infinite;animation-delay:var(--dl,0s)}
+.veh.l{animation:driveL var(--d,18s) linear infinite;animation-delay:var(--dl,0s)}
+.veh.l svg{transform:scaleX(-1)}
+@keyframes driveR{from{transform:translateX(-180px)}to{transform:translateX(calc(var(--sw,100vw) + 20px))}}
+@keyframes driveL{from{transform:translateX(calc(var(--sw,100vw) + 20px))}to{transform:translateX(-180px)}}
+.veh .wheel{transform-box:fill-box;transform-origin:center;animation:spin .5s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ped{position:absolute;bottom:104px;left:0;animation:walkR var(--d,60s) linear infinite;animation-delay:var(--dl,0s)}
+.ped.l{animation-name:walkL}.ped.l svg{transform:scaleX(-1)}
+@keyframes walkR{from{transform:translateX(-40px)}to{transform:translateX(calc(var(--sw,100vw) + 10px))}}
+@keyframes walkL{from{transform:translateX(calc(var(--sw,100vw) + 10px))}to{transform:translateX(-40px)}}
+.ped .lg,.ped .ar{transform-box:fill-box;transform-origin:top center;animation:stride .7s ease-in-out infinite alternate}
+.ped .lg.b,.ped .ar.a{animation-direction:alternate-reverse}
+@keyframes stride{from{transform:rotate(24deg)}to{transform:rotate(-24deg)}}
+.ped .bob{animation:bob .35s ease-in-out infinite alternate}
+@keyframes bob{to{transform:translateY(-1px)}}
+.sign{position:absolute;bottom:118px;display:flex;flex-direction:column;align-items:center}
+.sign .pole{width:4px;background:#8C96A3;height:var(--h,52px);border-radius:2px}
+.gantry{position:absolute;bottom:0;right:6%;width:230px;height:206px}
+.gantry .post{position:absolute;bottom:0;width:7px;height:180px;background:#7E8894;border-radius:3px}
+.gantry .board{position:absolute;top:8px;left:-6px;right:-6px;height:52px;border-radius:8px;background:var(--accent);border:3px solid #fff;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+.gantry .board b{font-family:var(--f-display);font-size:16px;letter-spacing:-.01em;line-height:1}
+.gantry .board small{display:block;font-size:10px;opacity:.85;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.gantry .arrow{font-size:22px;font-weight:800;color:var(--lane);animation:nudge 1.4s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateX(4px)}}
+
+@media (max-width:520px){.sign.s2,.sign.s3,.sign.s4{display:none}.gantry{width:200px;right:4%}.gantry .board b{font-size:14px}.item.lesson{flex-wrap:wrap}.item.lesson .grow{flex:1 1 calc(100% - 72px)}.item.lesson .acts{flex:1 1 100%;justify-content:flex-end}}
+.tlight{width:16px;padding:3px;border-radius:5px;background:#1B1C1F;display:flex;flex-direction:column;gap:3px}
+.tlight i{width:10px;height:10px;border-radius:50%;background:#3a3a3a}
+.tlight .r{animation:tlR 9s infinite}.tlight .y{animation:tlY 9s infinite}.tlight .g{animation:tlG 9s infinite}
+@keyframes tlR{0%,40%{background:#FF3B30;box-shadow:0 0 8px #FF3B30}41%,100%{background:#3a3a3a}}
+@keyframes tlY{0%,40%{background:#3a3a3a}41%,52%{background:#FFD900;box-shadow:0 0 8px #FFD900}53%,100%{background:#3a3a3a}}
+@keyframes tlG{0%,52%{background:#3a3a3a}53%,100%{background:#34C759;box-shadow:0 0 8px #34C759}}
+@media (prefers-reduced-motion:reduce){.veh,.ped,.ped *,.veh *,.card.hot::after,.card.night.road::after,.gantry .arrow,.tlight i{animation:none!important}.veh.r{transform:translateX(20vw)}.veh.l{transform:translateX(55vw)}.ped{transform:translateX(35vw)}}
+
+/* ── white top bar ── */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:#FFFFFF;color:#111418;border-bottom:1px solid #E4E9F0;box-shadow:0 1px 0 rgba(17,30,60,.02),0 6px 20px rgba(17,30,60,.05)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:41;background:#FFFFFF}
+.topbar-in{height:100px;display:flex;align-items:center;gap:20px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:16px;border:0;background:none;padding:0;color:inherit;text-decoration:none}
+.brand img{height:76px;width:auto;display:block;transition:transform .3s var(--spring)}
+.brand:hover img{transform:rotate(-2deg) scale(1.03)}
+.brand .sep{width:1px;height:30px;background:#E4E9F0}
+.brand .name{display:flex;flex-direction:column;line-height:1.1;text-align:left}
+.brand .name b{font-family:var(--f-display);font-size:16px;font-weight:700;letter-spacing:-.01em;color:#111418}
+.brand .name span{font-size:12px;color:#6B7480}
+.topbar .spacer{flex:1}
+.topbar .today{font-size:13px;color:#6B7480;font-weight:500}
+.seg{display:inline-flex;align-items:center;background:#EEF2F7;border-radius:999px;padding:4px;gap:2px}
+.seg .lbl{font-size:12px;color:#6B7480;font-weight:600;padding:0 8px 0 10px}
+.seg button{border:0;background:transparent;color:#4B5563;font-weight:600;font-size:13px;padding:8px 14px;border-radius:999px;transition:background-color .25s var(--ease),color .2s,box-shadow .25s var(--ease),transform .15s}
+.seg button:hover{color:#111418}
+.seg button:active{transform:scale(.95)}
+.seg button.on{background:#FFFFFF;color:#111418;box-shadow:0 1px 2px rgba(17,30,60,.08),0 4px 10px rgba(17,30,60,.08)}
+.seg button.on::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--lane);margin-right:7px;vertical-align:1px;box-shadow:0 0 0 2px rgba(255,217,0,.25)}
+.topbar .btn.primary{padding:11px 18px}
+.side{top:calc(100px + env(safe-area-inset-top,0px));height:calc(100vh - 100px - env(safe-area-inset-top,0px));padding-top:22px}
+.side .foot{margin-top:auto;padding:14px 12px 0;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+@media (max-width:860px){
+  .topbar-in{height:78px;gap:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .brand img{height:58px}.brand .sep,.brand .name,.topbar .today,.topbar .btn.primary,.seg .lbl{display:none}
+  .seg button{padding:7px 12px}
+}
+/* page header */
+.hello{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.hello h1{font-size:clamp(30px,4.6vw,46px);line-height:1.02}
+.hello h1 .who{color:var(--accent)}
+.hello .eyebrow{margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.hello .eyebrow i{width:18px;height:3px;border-radius:2px;background:var(--lane);display:inline-block}
+.seg.theme{background:var(--surface-2)}
+.seg.theme button{color:var(--muted)} .seg.theme button:hover{color:var(--ink)}
+.seg.theme button.on{background:var(--surface);color:var(--ink)}
+.seg.theme button.on::before{display:none}
+
+/* ── white / futuristic pass ── */
+html,body{background:#FFFFFF}
+h1,h2,h3{font-family:var(--f-display)}
+h1{font-weight:600;letter-spacing:-.03em}
+h2{font-weight:600;font-size:21px}
+.eyebrow{font-family:var(--f-mono);font-weight:500;letter-spacing:.1em;font-size:10.5px}
+.big{font-family:var(--f-display);letter-spacing:-.025em}
+.num,.big.num,.time,.pick .price{font-family:var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.big{font-weight:600;font-size:28px}
+.time{font-weight:600;font-size:16px}
+.side{background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-right:1px solid var(--line)}
+.nav-btn{color:#4E596B;font-weight:500}
+.nav-btn:hover{background:var(--surface-2);color:var(--ink)}
+.nav-btn.on{background:var(--accent-soft);color:var(--accent);box-shadow:inset 3px 0 0 var(--accent);font-weight:600}
+.nav-btn.on svg{filter:drop-shadow(0 0 6px rgba(47,116,208,.45))}
+.topbar{background:rgba(255,255,255,.86);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4)}
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(47,116,208,.55),rgba(24,180,245,.55),transparent);background-size:200% 100%;animation:scan 6s linear infinite}
+@keyframes scan{to{background-position:-200% 0}}
+.card{border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);background:rgba(255,255,255,.92)}
+.card.soft{background:var(--surface-2);box-shadow:none;border-color:var(--line)}
+.card.night{background:#FFFFFF;color:var(--ink);border-color:var(--line)}
+.card.night .muted,.card.night .eyebrow{color:var(--muted)}
+.card.hot{background:linear-gradient(#fff,#fff) padding-box,var(--grad) border-box;border:1.5px solid transparent;color:var(--ink);box-shadow:var(--glow)}
+.card.hot .muted{color:var(--muted)}
+.card.hot::after{display:none}
+.card.night.road::after,.card.hot::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),var(--accent-2),transparent);background-size:200% 100%;animation:scan 4s linear infinite}
+.card.hot::before{z-index:1}
+.big.orange{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bar{background:#EDF1F6;height:6px}
+.bar i,.card.night .bar i{background:var(--grad);box-shadow:0 0 10px rgba(24,180,245,.55)}
+.stat-split>div{border-left-color:var(--line)}
+.btn{border-color:var(--line-2);background:#fff;font-weight:600;letter-spacing:-.005em}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary,.btn.dark{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(47,116,208,.25),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn.primary:hover,.btn.dark:hover{color:#fff;box-shadow:var(--lift);filter:saturate(1.1) brightness(1.04)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--accent-soft)}
+.btn.danger{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
+.icon-btn{border-color:var(--line-2);background:#fff}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.chip{border-color:var(--line-2);background:#fff;color:#4E596B}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.on{background:var(--accent-soft);color:var(--accent);border-color:rgba(47,116,208,.45);box-shadow:0 0 0 3px rgba(47,116,208,.08)}
+.item,.alert,.toggle,.thumb,.pick{background:rgba(255,255,255,.94);border-color:var(--line)}
+button.item:hover,.item.click:hover,.alert:hover,.thumb:hover,.pick:hover{border-color:rgba(47,116,208,.45);box-shadow:var(--glow)}
+.pick.on{border-color:var(--accent);box-shadow:var(--glow)}
+.avatar{background:var(--grad);color:#fff;box-shadow:0 0 0 3px #fff,0 0 0 4px rgba(47,116,208,.25)}
+.vlabel{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+.pill{font-weight:600;border:1px solid transparent}
+.pill.hot{background:var(--accent-soft);color:var(--accent);border-color:rgba(47,116,208,.2)}
+.pill.plain{background:var(--surface-2);color:#4E596B;border-color:var(--line)}
+.wday{background:#fff}
+.wday.on{background:var(--grad);color:#fff;border-color:transparent;box-shadow:var(--lift)}
+.wday.on small{color:rgba(255,255,255,.8)} .wday.on .cnt{color:#fff}
+.table-wrap{border-color:var(--line);box-shadow:var(--shadow)}
+th{font-family:var(--f-mono);font-weight:500}
+input[type=text],input[type=tel],input[type=number],input[type=date],input[type=time],input[type=search],select,textarea{background:#fff;border-color:var(--line-2)}
+.empty{background:rgba(255,255,255,.7);border-color:var(--line-2)}
+#modal{background:rgba(12,18,32,.28)}
+.sheet{background:#FFFFFF;border:1px solid var(--line);box-shadow:0 30px 80px rgba(12,18,32,.18)}
+#toast{background:rgba(255,255,255,.95);color:var(--ink);border:1px solid var(--line);box-shadow:var(--glow);backdrop-filter:blur(10px)}
+.bottom{background:rgba(255,255,255,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:var(--line);box-shadow:0 12px 34px rgba(12,18,32,.12)}
+.bottom .plus{background:var(--grad);color:#fff}
+.bottom button.on{color:var(--accent)}
+.switch.on{background:var(--grad)}
+.hello h1 .who{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hello .eyebrow i{background:var(--grad);height:2px;width:22px}
+.seg{background:var(--surface-2);border:1px solid var(--line)}
+.seg button.on::before{background:var(--accent);box-shadow:0 0 8px rgba(24,180,245,.8)}
+.veh-ico{background:var(--accent-soft);color:var(--accent)}
+.banner{border:1px solid rgba(163,95,0,.2)}
+.chart .exp{fill:#0C1220;opacity:.18}
+.chart .rev{fill:url(#revGrad)}
+/* light road scene */
+.asphalt{background:#DFE4EB}
+.asphalt::after{background:#fff}
+.zebra{background:repeating-linear-gradient(0deg,#fff 0 8px,transparent 8px 16px)}
+.walkway{background:var(--walk);border-bottom-color:var(--curb)}
+.scene{background:linear-gradient(transparent 30%,rgba(237,244,254,.6))}
+.gantry .board{background:var(--grad);box-shadow:0 8px 20px rgba(47,116,208,.3)}
+.gantry .post,.sign .pole{background:#B7C1CE}
+
+/* ── rounded type + city map pass ── */
+body{font-size:15.5px;letter-spacing:.005em}
+h1,h2,h3,.big{font-family:var(--f-display);font-weight:800;letter-spacing:-.015em}
+h1{font-size:clamp(30px,4.4vw,44px);line-height:1.05}
+h2{font-size:21px}
+.eyebrow,.vlabel,th{font-family:var(--f-body);font-weight:800;letter-spacing:.09em}
+.num,.big.num,.time,.pick .price{font-family:var(--f-body);font-weight:800;letter-spacing:-.01em}
+.time{font-size:18px}
+.btn,.chip,.seg button,.nav-btn{font-weight:700}
+.brand .name b{font-family:var(--f-display);font-size:20px;font-weight:900;letter-spacing:-.01em}
+.brand .name span{font-size:13px}
+.brand .sep{height:44px}
+:root{--r-lg:26px;--r-md:20px;--r-sm:14px}
+.app{position:relative;z-index:1}
+.city{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.card,.item,.alert,.toggle,.thumb,.pick,.table-wrap{background:rgba(255,255,255,.86);backdrop-filter:blur(6px) saturate(1.2);-webkit-backdrop-filter:blur(10px) saturate(1.2)}
+.card.hot{background:linear-gradient(rgba(255,255,255,.96),rgba(255,255,255,.96)) padding-box,var(--grad) border-box}
+.empty{background:rgba(255,255,255,.85);backdrop-filter:blur(8px)}
+.side{background:rgba(255,255,255,.62)}
+.nav-btn{border-radius:16px;padding:10px 12px}
+.nav-btn svg{width:36px;height:36px;padding:8px;border-radius:12px;background:var(--surface-2);color:#4E596B;transition:background .2s,color .2s,transform .25s var(--spring)}
+.nav-btn:hover svg{transform:scale(1.06)}
+.nav-btn.on svg{background:var(--grad);color:#fff;filter:none;box-shadow:0 6px 14px rgba(47,116,208,.35)}
+.nav-btn.on{box-shadow:none;background:var(--accent-soft)}
+.hello,.page-head{background:rgba(255,255,255,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 24px;box-shadow:var(--shadow)}
+.section-head{background:rgba(255,255,255,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:999px;padding:8px 10px 8px 18px;border:1px solid var(--line);align-items:center}
+.section-head h2{font-size:18px}
+.icon-btn{width:42px;height:42px}
+.avatar{font-family:var(--f-display);font-weight:900}
+@media (max-width:860px){.brand img{height:58px}.hello,.page-head{padding:18px}}
+
+/* ── review fixes: legibility + tap targets ── */
+.eyebrow,.vlabel,th{font-size:12px;letter-spacing:.07em}
+.chart text{font-size:12px}
+.bottom button{font-size:12px}
+.hint,.field .hint{font-size:12.5px}
+.btn{min-height:44px}
+.btn.sm{min-height:40px}
+.chip{min-height:40px;display:inline-flex;align-items:center;flex:none}
+.seg button{min-height:38px}
+.icon-btn{width:44px;height:44px}
+@media (max-width:860px),(pointer:coarse){.btn.sm,.chip{min-height:44px}.seg button{min-height:42px}.bottom button{min-height:48px}}
+/* first-time home */
+.start{display:flex;flex-direction:column;gap:16px}
+.steps-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:860px){.steps-list{grid-template-columns:minmax(0,1fr)}}
+.step{border:1px solid var(--line);border-radius:var(--r-md);padding:18px;display:flex;flex-direction:column;gap:10px;background:#fff}
+.step .n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:var(--accent-soft);color:var(--accent)}
+.step.done .n{background:var(--good-soft);color:var(--good)}
+.step p{margin:0;color:var(--muted);font-size:14px}
+.step .btn{align-self:flex-start;margin-top:auto}
+/* package cards */
+.pick .per{font-size:13px;color:var(--muted);font-weight:700}
+.pick.popular{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-soft),#fff 60%);box-shadow:var(--glow)}
+
+/* ── ui-ux-pro-max pass: type scale, readable glass, depth ── */
+:root{--t-12:12px;--t-14:14px;--t-16:16px;--t-18:18px;--t-24:24px;--t-32:32px;
+  --e1:0 1px 2px rgba(12,18,32,.05),0 4px 14px rgba(12,18,32,.05);
+  --e2:0 2px 4px rgba(12,18,32,.04),0 14px 36px rgba(31,79,160,.10);
+  --e3:0 4px 8px rgba(12,18,32,.05),0 24px 60px rgba(31,79,160,.16);
+  --glass:rgba(255,255,255,.94); --glass-edge:rgba(255,255,255,.9)}
+body{font-size:var(--t-16);line-height:1.5}
+.small{font-size:var(--t-14)}
+h2{font-size:var(--t-24)} h3{font-size:var(--t-18)}
+.card,.item,.alert,.toggle,.thumb,.pick,.table-wrap,.step{background:var(--glass);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border:1px solid var(--line);box-shadow:inset 0 1px 0 var(--glass-edge),var(--e1)}
+.card{box-shadow:inset 0 1px 0 var(--glass-edge),var(--e2)}
+.card.hot{box-shadow:var(--glow),var(--e2)}
+button.item:hover,.item.click:hover,.alert:hover,.thumb:hover,.pick:hover{box-shadow:inset 0 1px 0 var(--glass-edge),var(--e3);border-color:rgba(47,116,208,.35)}
+.item{padding:16px 18px;gap:16px}
+/* section titles: plain, readable over the map */
+.section-head{background:none;border:0;padding:6px 2px 0;backdrop-filter:none;-webkit-backdrop-filter:none}
+.section-head h2{font-size:var(--t-24);text-shadow:0 0 10px #fff,0 0 3px #fff,0 0 1px #fff}
+.section-head h2::before{content:"";display:inline-block;width:10px;height:10px;border-radius:4px;background:var(--grad);margin-right:10px;vertical-align:2px;box-shadow:0 0 0 4px rgba(47,116,208,.12)}
+.section-head .btn.ghost{background:rgba(255,255,255,.9);border:1px solid var(--line)}
+/* page headers get a little road */
+.hello,.page-head{position:relative;overflow:hidden;padding-bottom:34px;background:var(--glass);box-shadow:inset 0 1px 0 var(--glass-edge),var(--e2)}
+.hello::after,.page-head::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12px;background-color:#2A2C31;background-image:repeating-linear-gradient(90deg,var(--lane) 0 18px,transparent 18px 34px);background-size:34px 2px;background-repeat:repeat-x;background-position:0 50%;animation:roadmove 1.2s linear infinite}
+@keyframes roadmove{to{background-position:-34px 50%}}
+.hello-car{position:absolute;bottom:8px;left:0;animation:minicar 14s linear infinite;pointer-events:none}
+@keyframes minicar{from{transform:translateX(-70px)}to{transform:translateX(calc(100vw))}}
+/* stat tiles */
+.st-ic{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);margin-bottom:12px}
+.st-ic svg{width:20px;height:20px}
+.st-ic.hot{background:var(--grad);color:#fff;box-shadow:0 6px 14px rgba(47,116,208,.3)}
+.stat-split .muted.small{font-size:var(--t-14);font-weight:600}
+/* entrance: soft stagger with a touch of scale (300-450ms, back-out) */
+@keyframes rise{from{opacity:.001;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+.wrap.enter>*{animation:rise .42s cubic-bezier(.34,1.3,.64,1) both}
+.wrap.enter .list>*{animation:rise .38s cubic-bezier(.34,1.3,.64,1) both}
+.wrap.enter .list>*:nth-child(2){animation-delay:.06s}.wrap.enter .list>*:nth-child(3){animation-delay:.12s}.wrap.enter .list>*:nth-child(n+4){animation-delay:.18s}
+@media (max-width:520px){.section-head h2{font-size:20px}.st-ic{width:34px;height:34px;margin-bottom:8px}}
+@media (prefers-reduced-motion:reduce){.hello::after,.page-head::after,.hello-car{animation:none!important}.hello-car{display:none}}
+
+/* ── colour roles: blue / black / white + real shadows ── */
+:root{
+  --black:#121418; --black-2:#1C1F26; --on-black:#FFFFFF; --black-muted:#AEB6C2; --black-line:rgba(255,255,255,.12);
+  --blue-1:#1D4FA0; --blue-2:#2F74D0; --on-blue:#FFFFFF;
+  --e1:0 1px 2px rgba(16,24,40,.06),0 10px 22px -8px rgba(16,24,40,.18);
+  --e2:0 2px 4px rgba(16,24,40,.06),0 20px 44px -14px rgba(16,24,40,.28);
+  --e3:0 4px 8px rgba(16,24,40,.08),0 30px 60px -16px rgba(31,79,160,.36);
+  --e-black:0 2px 4px rgba(0,0,0,.2),0 24px 48px -14px rgba(0,0,0,.5);
+  --e-blue:0 2px 4px rgba(29,79,160,.2),0 24px 48px -14px rgba(29,79,160,.6);
+}
+/* black panels */
+.card.night{background:radial-gradient(120% 90% at 100% 0%,#232833 0%,var(--black) 55%);color:var(--on-black);border:1px solid var(--black);box-shadow:var(--e-black)}
+.card.night .muted,.card.night .eyebrow,.card.night .small{color:var(--black-muted)}
+.card.night .stat-split>div{border-left-color:var(--black-line)}
+.card.night .bar{background:rgba(255,255,255,.12)}
+.card.night .bar i{background:linear-gradient(90deg,#3F8CFF,#18B4F5)}
+.card.night .big.orange{background:linear-gradient(135deg,#7DB6FF,#3FC6FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card.night .st-ic{background:rgba(255,255,255,.08);color:#fff}
+.card.night .st-ic.hot{background:var(--grad)}
+.card.night .num{color:inherit}
+.card.night.road::after{background:linear-gradient(90deg,transparent,#3F8CFF,#18B4F5,transparent);background-size:200% 100%}
+.card.night .btn:not(.primary){background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff}
+.card.night .btn:not(.primary):hover{background:rgba(255,255,255,.16);border-color:#fff}
+/* blue panels */
+.card.hot{background:linear-gradient(135deg,var(--blue-1) 0%,var(--blue-2) 100%);color:var(--on-blue);border:1px solid var(--blue-1);box-shadow:var(--e-blue)}
+.card.hot .muted,.card.hot .eyebrow{color:rgba(255,255,255,.86)}
+.card.hot::before{background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);background-size:200% 100%}
+.card.hot .pill.hot{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.card.hot .avatar{background:#fff;color:var(--blue-1);box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.card.hot .btn:not(.dark){background:#fff;border-color:#fff;color:var(--blue-1)}
+.card.hot .btn:not(.dark):hover{color:var(--blue-1);box-shadow:0 10px 22px -8px rgba(0,0,0,.35)}
+.card.hot .big{color:#fff}
+/* black buttons */
+.btn.dark{background:var(--black);border-color:var(--black);color:#fff;box-shadow:0 8px 18px -8px rgba(0,0,0,.55)}
+.btn.dark:hover{background:#000;color:#fff;filter:none;box-shadow:0 14px 26px -10px rgba(0,0,0,.6)}
+/* real shadows on white surfaces */
+.card{box-shadow:inset 0 1px 0 var(--glass-edge),var(--e2)}
+.item,.alert,.toggle,.thumb,.pick,.table-wrap,.step{box-shadow:inset 0 1px 0 var(--glass-edge),var(--e1)}
+.hello,.page-head{box-shadow:inset 0 1px 0 var(--glass-edge),var(--e2)}
+button.item:hover,.item.click:hover,.alert:hover,.thumb:hover,.pick:hover{box-shadow:inset 0 1px 0 var(--glass-edge),var(--e3)}
+.card.night,.card.hot{backdrop-filter:none;-webkit-backdrop-filter:none}
+/* sidebar + bottom nav accents in black */
+.nav-btn.on{background:var(--black);color:#fff}
+.nav-btn.on svg{background:var(--grad);color:#fff}
+.bottom .plus{background:var(--black);box-shadow:0 10px 22px -6px rgba(0,0,0,.5)}
+.bottom .plus:hover .i-plus{transform:rotate(90deg)}
+
+/* ── more black ── */
+.side{background:linear-gradient(180deg,#16191F 0%,var(--black) 100%);border-right:0;box-shadow:8px 0 30px -12px rgba(0,0,0,.35)}
+.nav-btn{color:#C4CBD5}
+.nav-btn svg{background:rgba(255,255,255,.07);color:#C4CBD5}
+.nav-btn:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-btn:hover svg{color:#fff}
+.nav-btn.on{background:var(--grad);color:#fff;box-shadow:0 10px 22px -8px rgba(24,140,245,.55)}
+.nav-btn.on svg{background:rgba(255,255,255,.2);color:#fff;box-shadow:none}
+.side .foot{color:#8E97A4;border-top-color:rgba(255,255,255,.1)}
+.bottom{background:rgba(18,20,24,.94);border-color:rgba(255,255,255,.08);box-shadow:0 16px 36px -8px rgba(0,0,0,.45)}
+.bottom button{color:#AEB6C2}
+.bottom button.on{color:#7DB6FF}
+.bottom .plus{background:var(--grad);color:#fff;box-shadow:0 8px 20px -4px rgba(24,140,245,.6)}
+.item .time{background:var(--black);color:#fff;border-radius:14px;padding:10px 0;width:68px;text-align:center;box-shadow:0 8px 16px -8px rgba(0,0,0,.5)}
+thead th{background:var(--black);color:#E6EAF0}
+thead th:first-child{border-top-left-radius:inherit}
+.chip.on{background:var(--black);color:#fff;border-color:var(--black);box-shadow:0 8px 16px -8px rgba(0,0,0,.45)}
+.wday.on{background:var(--black);color:#fff;border-color:var(--black);box-shadow:var(--e-black)}
+.wday.on small{color:#AEB6C2}.wday.on .cnt{color:#7DB6FF}
+.seg button.on,.seg.theme button.on{background:var(--black);color:#fff;box-shadow:0 6px 14px -6px rgba(0,0,0,.5)}
+.seg button.on::before{background:#7DB6FF;box-shadow:0 0 8px rgba(125,182,255,.9)}
+#toast{background:rgba(18,20,24,.95);color:#fff;border-color:rgba(255,255,255,.08);box-shadow:var(--e-black)}
+.section-head h2::before{background:var(--black);box-shadow:0 0 0 4px rgba(18,20,24,.1)}
+.section-head .btn.ghost{background:var(--black);color:#fff;border-color:var(--black)}
+.section-head .btn.ghost:hover{background:#000;color:#fff}
+.step .n{background:var(--black);color:#fff}
+.card.night .step{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;color:#fff}
+.card.night .step p{color:var(--black-muted)}
+.card.night .step .n{background:#fff;color:var(--black)}
+.card.night .step.done .n{background:var(--good);color:#fff}
+.card.night .step .btn[disabled]{opacity:.4}
+/* black top bar + round logo */
+.topbar{background:rgba(18,20,24,.96);color:#fff;border-bottom:0;box-shadow:0 10px 30px -10px rgba(0,0,0,.45)}
+body::before{background:#121418}
+.brand .logo-circle{width:124px;height:82px;border-radius:18px;background:#fff;display:grid;place-items:center;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.12),0 0 0 6px rgba(47,116,208,.35),0 10px 24px -6px rgba(0,0,0,.6);transition:transform .3s var(--spring),box-shadow .3s var(--ease)}
+.brand .logo-circle img{height:auto!important;width:100px;transform:translateY(-1px)}
+.brand:hover .logo-circle{transform:scale(1.05) rotate(-3deg);box-shadow:0 0 0 3px rgba(255,255,255,.2),0 0 0 7px rgba(24,180,245,.5),0 12px 28px -6px rgba(0,0,0,.6)}
+.brand:hover img{transform:none}
+.brand .sep{background:rgba(255,255,255,.14)}
+.brand .name b{color:#fff}
+.brand .name span{color:#AEB6C2}
+.topbar .seg{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1)}
+.topbar .seg .lbl{color:#AEB6C2}
+.topbar .seg button{color:#D3D9E1}
+.topbar .seg button:hover{color:#fff}
+.topbar .seg button.on{background:linear-gradient(135deg,#1D4FA0,#2F74D0);color:#fff;box-shadow:0 8px 18px -6px rgba(47,116,208,.7)}
+.topbar .seg button.on::before{background:#fff;box-shadow:0 0 8px rgba(255,255,255,.9)}
+@media (max-width:860px){.brand .logo-circle{width:92px;height:60px;border-radius:14px}.brand .logo-circle img{width:74px}}
+/* white-to-black top bar: logo sits on white */
+.topbar,body::before{background:linear-gradient(90deg,#FFFFFF 0,#FFFFFF 300px,#C9CED6 420px,#2A2E36 560px,#121418 680px)}
+.brand .logo-circle{background:transparent;box-shadow:none;width:auto;height:auto;border-radius:0}
+.brand .logo-circle img{width:auto!important;height:78px!important}
+.brand:hover .logo-circle{box-shadow:none;transform:scale(1.04) rotate(-2deg)}
+.brand .sep{background:#D7DDE5}
+.brand .name b{color:#121418}
+.brand .name span{color:#525C6E}
+@media (max-width:860px){.topbar,body::before{background:linear-gradient(90deg,#FFFFFF 0,#FFFFFF 120px,#C9CED6 170px,#2A2E36 220px,#121418 260px)}.brand .logo-circle img{height:58px!important}}
+
+/* lesson types */
+.type-pick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.type-pick .pick{padding:14px}
+.type-pick .pick .veh-ico{width:38px;height:38px}
+.checklist{max-height:240px;overflow:auto;border:1px solid var(--line-2);border-radius:var(--r-sm);background:#fff;display:flex;flex-direction:column}
+.ck{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;min-height:48px}
+.ck:last-child{border-bottom:0}
+.ck:hover{background:var(--accent-soft)}
+.ck input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.ck span{flex:1;font-weight:700}
+.ck small{color:var(--muted);font-weight:700}
+.item.lesson.theory .time{background:var(--grad)}
+.item.lesson.theory .vlabel{color:var(--accent-deep)}
+
+/* ── clean floating nav bar ── */
+.topbar,body::before{background:rgba(255,255,255,.92)}
+body::before{background:#fff}
+.topbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);margin:12px max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));border-radius:24px;border:1px solid var(--line);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 1px 2px rgba(16,24,40,.06),0 18px 40px -16px rgba(16,24,40,.28)}
+.topbar::after{display:none}
+.topbar-in{height:76px;gap:14px;padding:0 12px 0 18px}
+.brand .logo-circle{background:transparent;box-shadow:none;width:auto;height:auto;border-radius:0}
+.brand .logo-circle img{height:54px!important;width:auto!important}
+.brand .sep,.brand .name{display:none}
+.tabs{display:flex;gap:2px;padding:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;min-width:0}
+.tab{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;color:#4E596B;font-weight:700;font-size:14px;padding:0 14px;min-height:42px;border-radius:999px;white-space:nowrap;transition:background-color .2s var(--ease),color .2s,box-shadow .25s var(--ease),transform .15s}
+.tab svg{width:18px;height:18px;flex:none}
+.tab:hover{background:#fff;color:var(--ink)}
+.tab:active{transform:scale(.95)}
+.tab.on{background:var(--black);color:#fff;box-shadow:0 8px 18px -8px rgba(0,0,0,.55)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:1300px){.tab span{display:none}.tab{padding:0 13px}.tab.on span{display:inline}}
+@media (max-width:1560px){.seg .lbl{display:none}}
+.topbar .seg{background:var(--black);border-color:var(--black);box-shadow:0 8px 18px -8px rgba(0,0,0,.5)}
+.topbar .seg .lbl{color:#AEB6C2}
+.topbar .seg button{color:#fff}
+.topbar .seg button:hover{color:#fff;background:rgba(255,255,255,.1)}
+.topbar .seg button.on{background:linear-gradient(135deg,#1D4FA0,#2F74D0);color:#fff;box-shadow:0 8px 18px -6px rgba(47,116,208,.6)}
+.topbar .seg button.on::before{background:#fff}
+/* sidebar no longer needed: everything lives in the bar */
+.side{display:none!important}
+.app{grid-template-columns:minmax(0,1fr)}
+main{padding-top:24px}
+@media (max-width:860px){
+  .topbar{margin:10px max(10px,env(safe-area-inset-right,0px)) 0 max(10px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 10px);border-radius:20px}
+  .topbar-in{height:64px;padding:0 8px 0 12px}
+  .tabs{display:none}
+  .brand .logo-circle img{height:44px!important}
+  main{padding-top:16px}
+}
+/* get started: black card, white option boxes */
+.card.night .step{background:#fff;border-color:#fff;color:var(--ink);box-shadow:0 14px 30px -14px rgba(0,0,0,.6)}
+.card.night .step h3{color:var(--ink)}
+.card.night .step p{color:var(--muted)}
+.card.night .step .n{background:var(--black);color:#fff}
+.card.night .step.done .n{background:var(--good);color:#fff}
+.card.night .step .btn:not(.primary){background:#fff;color:var(--ink);border-color:var(--line-2)}
+.card.night .step .btn:not(.primary):hover{border-color:var(--accent);color:var(--accent);background:#fff}
+
+.wiz-sched{border:1px solid var(--line);border-radius:var(--r-md);padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--accent-soft)}
+.item.exam .time{background:#FFD400;color:#1B1B1D}
+.item.exam .vlabel{color:#8A6A00}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<svg class="city" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+<defs><linearGradient id="cityGrad" x1="0" x2="1"><stop offset="0" stop-color="#2F74D0"/><stop offset="1" stop-color="#18B4F5"/></linearGradient>
+<style>.blk{fill:#F3F6FA}.bld{fill:#E6ECF3}.park{fill:#E6F4EB}.tree{fill:#C9E8D4}.rd{fill:none;stroke:#D5DDE7;stroke-width:54;stroke-linecap:round;stroke-linejoin:round}.rd-edge{fill:none;stroke:#fff;stroke-width:42;stroke-opacity:0;}.rd-mid{fill:none;stroke:#FFFFFF;stroke-width:3.2;stroke-dasharray:18 14}.zb{fill:#fff}</style>
+<path id="r1" d="M-120 250 H1720" fill="none"/><path id="r2" d="M-120 735 C300 735 420 655 800 655 S1300 775 1720 775" fill="none"/><path id="r3" d="M390 -120 V1120" fill="none"/><path id="r4" d="M1185 -120 C1185 290 1065 410 1065 600 S1185 910 1185 1120" fill="none"/><path id="r5" d="M-120 470 H390" fill="none"/><path id="r6" d="M1065 470 H1720" fill="none"/></defs>
+<rect width="1600" height="1000" fill="#FBFCFE"/>
+<rect x="15" y="15" width="340" height="200" rx="22" class="blk"/><rect x="28" y="28" width="314" height="174" rx="16" class="park"/><circle cx="210" cy="83" r="15" class="tree"/><circle cx="69" cy="63" r="10" class="tree"/><circle cx="232" cy="59" r="12" class="tree"/><circle cx="64" cy="67" r="15" class="tree"/><circle cx="259" cy="62" r="12" class="tree"/><circle cx="91" cy="153" r="9" class="tree"/><circle cx="108" cy="102" r="9" class="tree"/><circle cx="248" cy="57" r="12" class="tree"/><circle cx="68" cy="79" r="13" class="tree"/><circle cx="259" cy="81" r="10" class="tree"/><rect x="425" y="15" width="315" height="200" rx="22" class="blk"/><rect x="440" y="30" width="85" height="75" rx="10" class="bld"/><rect x="440" y="119" width="85" height="81" rx="10" class="bld"/><rect x="539" y="30" width="69" height="46" rx="10" class="bld"/><rect x="539" y="90" width="69" height="77" rx="10" class="bld"/><rect x="622" y="30" width="70" height="63" rx="10" class="bld"/><rect x="622" y="107" width="70" height="46" rx="10" class="bld"/><rect x="622" y="167" width="70" height="33" rx="10" class="bld"/><rect x="1220" y="15" width="365" height="200" rx="22" class="blk"/><rect x="1235" y="30" width="54" height="76" rx="10" class="bld"/><rect x="1235" y="120" width="54" height="43" rx="10" class="bld"/><rect x="1303" y="30" width="72" height="71" rx="10" class="bld"/><rect x="1303" y="115" width="72" height="83" rx="10" class="bld"/><rect x="1389" y="30" width="100" height="89" rx="10" class="bld"/><rect x="1389" y="133" width="100" height="60" rx="10" class="bld"/><rect x="1503" y="30" width="67" height="77" rx="10" class="bld"/><rect x="1503" y="121" width="67" height="69" rx="10" class="bld"/><rect x="15" y="285" width="340" height="150" rx="22" class="blk"/><rect x="28" y="298" width="314" height="124" rx="16" class="park"/><circle cx="230" cy="353" r="12" class="tree"/><circle cx="137" cy="404" r="12" class="tree"/><circle cx="86" cy="388" r="13" class="tree"/><circle cx="313" cy="378" r="14" class="tree"/><circle cx="274" cy="351" r="10" class="tree"/><circle cx="105" cy="380" r="15" class="tree"/><circle cx="129" cy="358" r="11" class="tree"/><circle cx="295" cy="368" r="9" class="tree"/><rect x="425" y="285" width="605" height="330" rx="22" class="blk"/><rect x="440" y="300" width="55" height="88" rx="10" class="bld"/><rect x="440" y="402" width="55" height="75" rx="10" class="bld"/><rect x="440" y="491" width="55" height="76" rx="10" class="bld"/><rect x="509" y="300" width="86" height="61" rx="10" class="bld"/><rect x="509" y="375" width="86" height="84" rx="10" class="bld"/><rect x="509" y="473" width="86" height="62" rx="10" class="bld"/><rect x="509" y="549" width="86" height="51" rx="10" class="bld"/><rect x="609" y="300" width="109" height="77" rx="10" class="bld"/><rect x="609" y="391" width="109" height="69" rx="10" class="bld"/><rect x="609" y="474" width="109" height="44" rx="10" class="bld"/><rect x="609" y="532" width="109" height="45" rx="10" class="bld"/><rect x="732" y="300" width="80" height="70" rx="10" class="bld"/><rect x="732" y="384" width="80" height="84" rx="10" class="bld"/><rect x="732" y="482" width="80" height="82" rx="10" class="bld"/><rect x="826" y="300" width="54" height="43" rx="10" class="bld"/><rect x="826" y="357" width="54" height="86" rx="10" class="bld"/><rect x="826" y="457" width="54" height="84" rx="10" class="bld"/><rect x="826" y="555" width="54" height="45" rx="10" class="bld"/><rect x="894" y="300" width="103" height="58" rx="10" class="bld"/><rect x="894" y="372" width="103" height="85" rx="10" class="bld"/><rect x="894" y="471" width="103" height="64" rx="10" class="bld"/><rect x="894" y="549" width="103" height="51" rx="10" class="bld"/><rect x="1220" y="285" width="365" height="150" rx="22" class="blk"/><rect x="1235" y="300" width="90" height="41" rx="10" class="bld"/><rect x="1235" y="355" width="90" height="65" rx="10" class="bld"/><rect x="1339" y="300" width="91" height="50" rx="10" class="bld"/><rect x="1339" y="364" width="91" height="56" rx="10" class="bld"/><rect x="1444" y="300" width="60" height="71" rx="10" class="bld"/><rect x="1444" y="385" width="60" height="35" rx="10" class="bld"/><rect x="1518" y="300" width="52" height="89" rx="10" class="bld"/><rect x="1100" y="505" width="485" height="220" rx="22" class="blk"/><rect x="1113" y="518" width="459" height="194" rx="16" class="park"/><circle cx="1277" cy="568" r="12" class="tree"/><circle cx="1333" cy="635" r="16" class="tree"/><circle cx="1171" cy="577" r="16" class="tree"/><circle cx="1335" cy="675" r="13" class="tree"/><circle cx="1200" cy="645" r="13" class="tree"/><circle cx="1491" cy="641" r="14" class="tree"/><circle cx="1479" cy="632" r="12" class="tree"/><circle cx="1207" cy="556" r="11" class="tree"/><circle cx="1207" cy="594" r="12" class="tree"/><circle cx="1136" cy="659" r="11" class="tree"/><circle cx="1264" cy="607" r="9" class="tree"/><circle cx="1204" cy="642" r="14" class="tree"/><circle cx="1442" cy="679" r="14" class="tree"/><circle cx="1194" cy="666" r="9" class="tree"/><rect x="15" y="505" width="340" height="180" rx="22" class="blk"/><rect x="30" y="520" width="104" height="89" rx="10" class="bld"/><rect x="30" y="623" width="104" height="47" rx="10" class="bld"/><rect x="148" y="520" width="96" height="65" rx="10" class="bld"/><rect x="148" y="599" width="96" height="65" rx="10" class="bld"/><rect x="258" y="520" width="82" height="46" rx="10" class="bld"/><rect x="258" y="580" width="82" height="70" rx="10" class="bld"/><rect x="15" y="785" width="340" height="200" rx="22" class="blk"/><rect x="30" y="800" width="97" height="43" rx="10" class="bld"/><rect x="30" y="857" width="97" height="52" rx="10" class="bld"/><rect x="30" y="923" width="97" height="44" rx="10" class="bld"/><rect x="141" y="800" width="72" height="68" rx="10" class="bld"/><rect x="141" y="882" width="72" height="50" rx="10" class="bld"/><rect x="227" y="800" width="60" height="61" rx="10" class="bld"/><rect x="227" y="875" width="60" height="78" rx="10" class="bld"/><rect x="301" y="800" width="39" height="46" rx="10" class="bld"/><rect x="301" y="860" width="39" height="40" rx="10" class="bld"/><rect x="301" y="914" width="39" height="56" rx="10" class="bld"/><rect x="425" y="705" width="720" height="280" rx="22" class="blk"/><rect x="440" y="720" width="65" height="74" rx="10" class="bld"/><rect x="440" y="808" width="65" height="46" rx="10" class="bld"/><rect x="440" y="868" width="65" height="63" rx="10" class="bld"/><rect x="519" y="720" width="49" height="44" rx="10" class="bld"/><rect x="519" y="778" width="49" height="53" rx="10" class="bld"/><rect x="519" y="845" width="49" height="79" rx="10" class="bld"/><rect x="519" y="938" width="49" height="32" rx="10" class="bld"/><rect x="582" y="720" width="65" height="80" rx="10" class="bld"/><rect x="582" y="814" width="65" height="56" rx="10" class="bld"/><rect x="582" y="884" width="65" height="62" rx="10" class="bld"/><rect x="661" y="720" width="92" height="70" rx="10" class="bld"/><rect x="661" y="804" width="92" height="47" rx="10" class="bld"/><rect x="661" y="865" width="92" height="47" rx="10" class="bld"/><rect x="661" y="926" width="92" height="44" rx="10" class="bld"/><rect x="767" y="720" width="105" height="70" rx="10" class="bld"/><rect x="767" y="804" width="105" height="70" rx="10" class="bld"/><rect x="767" y="888" width="105" height="59" rx="10" class="bld"/><rect x="886" y="720" width="56" height="49" rx="10" class="bld"/><rect x="886" y="783" width="56" height="46" rx="10" class="bld"/><rect x="886" y="843" width="56" height="87" rx="10" class="bld"/><rect x="956" y="720" width="89" height="87" rx="10" class="bld"/><rect x="956" y="821" width="89" height="56" rx="10" class="bld"/><rect x="956" y="891" width="89" height="70" rx="10" class="bld"/><rect x="1059" y="720" width="66" height="73" rx="10" class="bld"/><rect x="1059" y="807" width="66" height="41" rx="10" class="bld"/><rect x="1059" y="862" width="66" height="53" rx="10" class="bld"/><rect x="1059" y="929" width="66" height="41" rx="10" class="bld"/><rect x="1220" y="815" width="365" height="170" rx="22" class="blk"/><rect x="1235" y="830" width="92" height="49" rx="10" class="bld"/><rect x="1235" y="893" width="92" height="77" rx="10" class="bld"/><rect x="1341" y="830" width="49" height="88" rx="10" class="bld"/><rect x="1341" y="932" width="49" height="38" rx="10" class="bld"/><rect x="1404" y="830" width="84" height="81" rx="10" class="bld"/><rect x="1404" y="925" width="84" height="45" rx="10" class="bld"/><rect x="1502" y="830" width="68" height="73" rx="10" class="bld"/><rect x="1502" y="917" width="68" height="53" rx="10" class="bld"/>
+<path d="M-120 250 H1720" class="rd"/><path d="M-120 250 H1720" class="rd-edge"/><path d="M-120 250 H1720" class="rd-mid"/><path d="M-120 735 C300 735 420 655 800 655 S1300 775 1720 775" class="rd"/><path d="M-120 735 C300 735 420 655 800 655 S1300 775 1720 775" class="rd-edge"/><path d="M-120 735 C300 735 420 655 800 655 S1300 775 1720 775" class="rd-mid"/><path d="M390 -120 V1120" class="rd"/><path d="M390 -120 V1120" class="rd-edge"/><path d="M390 -120 V1120" class="rd-mid"/><path d="M1185 -120 C1185 290 1065 410 1065 600 S1185 910 1185 1120" class="rd"/><path d="M1185 -120 C1185 290 1065 410 1065 600 S1185 910 1185 1120" class="rd-edge"/><path d="M1185 -120 C1185 290 1065 410 1065 600 S1185 910 1185 1120" class="rd-mid"/><path d="M-120 470 H390" class="rd"/><path d="M-120 470 H390" class="rd-edge"/><path d="M-120 470 H390" class="rd-mid"/><path d="M1065 470 H1720" class="rd"/><path d="M1065 470 H1720" class="rd-edge"/><path d="M1065 470 H1720" class="rd-mid"/>
+<circle cx="390" cy="735" r="70" fill="#D5DDE7"/><circle cx="390" cy="735" r="34" fill="#EEF7F1" stroke="#fff" stroke-width="2.4" stroke-dasharray="10 8"/><circle cx="390" cy="735" r="16" fill="#D9EFE1"/>
+<rect x="369" y="303" width="4.5" height="18" rx="1.5" class="zb"/><rect x="377" y="303" width="4.5" height="18" rx="1.5" class="zb"/><rect x="385" y="303" width="4.5" height="18" rx="1.5" class="zb"/><rect x="393" y="303" width="4.5" height="18" rx="1.5" class="zb"/><rect x="401" y="303" width="4.5" height="18" rx="1.5" class="zb"/><rect x="409" y="303" width="4.5" height="18" rx="1.5" class="zb"/><rect x="321" y="229" width="18" height="4.5" rx="1.5" class="zb"/><rect x="321" y="237" width="18" height="4.5" rx="1.5" class="zb"/><rect x="321" y="245" width="18" height="4.5" rx="1.5" class="zb"/><rect x="321" y="253" width="18" height="4.5" rx="1.5" class="zb"/><rect x="321" y="261" width="18" height="4.5" rx="1.5" class="zb"/><rect x="321" y="269" width="18" height="4.5" rx="1.5" class="zb"/><rect x="1044" y="521" width="4.5" height="18" rx="1.5" class="zb"/><rect x="1052" y="521" width="4.5" height="18" rx="1.5" class="zb"/><rect x="1060" y="521" width="4.5" height="18" rx="1.5" class="zb"/><rect x="1068" y="521" width="4.5" height="18" rx="1.5" class="zb"/><rect x="1076" y="521" width="4.5" height="18" rx="1.5" class="zb"/><rect x="1084" y="521" width="4.5" height="18" rx="1.5" class="zb"/><rect x="791" y="634" width="18" height="4.5" rx="1.5" class="zb"/><rect x="791" y="642" width="18" height="4.5" rx="1.5" class="zb"/><rect x="791" y="650" width="18" height="4.5" rx="1.5" class="zb"/><rect x="791" y="658" width="18" height="4.5" rx="1.5" class="zb"/><rect x="791" y="666" width="18" height="4.5" rx="1.5" class="zb"/><rect x="791" y="674" width="18" height="4.5" rx="1.5" class="zb"/>
+
+<g><g><g transform="translate(0,11)"><g transform="scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#2F74D0"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-4" y="-5.5" width="10" height="11" rx="3" fill="#CFE2F8" opacity=".95"/></g></g></g><animateMotion dur="18s" begin="0s" repeatCount="indefinite" rotate="auto" ><mpath href="#r1"/></animateMotion></g><g><g transform="translate(0,-11)"><g transform="rotate(180) scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#1B1C1F"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-5" y="-4" width="9" height="8" rx="2" fill="#FFD400" stroke="#1B1B1D" stroke-width="1"/></g></g></g><animateMotion dur="22s" begin="-9s" repeatCount="indefinite" rotate="auto" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r1"/></animateMotion></g><g><g transform="translate(0,11)"><g transform="scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#C9CED6"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-4" y="-5.5" width="10" height="11" rx="3" fill="#CFE2F8" opacity=".95"/></g></g></g><animateMotion dur="26s" begin="-14s" repeatCount="indefinite" rotate="auto" ><mpath href="#r1"/></animateMotion></g><g><g transform="translate(0,11)"><g transform="scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#FFD400"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-4" y="-5.5" width="10" height="11" rx="3" fill="#CFE2F8" opacity=".95"/></g></g></g><animateMotion dur="24s" begin="-3s" repeatCount="indefinite" rotate="auto" ><mpath href="#r2"/></animateMotion></g><g><g transform="translate(0,-11)"><g transform="rotate(180) scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#1B1C1F"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-5" y="-4" width="9" height="8" rx="2" fill="#FFD400" stroke="#1B1B1D" stroke-width="1"/></g></g></g><animateMotion dur="20s" begin="-12s" repeatCount="indefinite" rotate="auto" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r2"/></animateMotion></g><g><g transform="translate(0,11)"><g transform="scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#D0342C"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-4" y="-5.5" width="10" height="11" rx="3" fill="#CFE2F8" opacity=".95"/></g></g></g><animateMotion dur="30s" begin="-20s" repeatCount="indefinite" rotate="auto" ><mpath href="#r2"/></animateMotion></g><g><g transform="translate(0,-11)"><g transform="rotate(180) scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#2F74D0"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-4" y="-5.5" width="10" height="11" rx="3" fill="#CFE2F8" opacity=".95"/></g></g></g><animateMotion dur="16s" begin="-5s" repeatCount="indefinite" rotate="auto" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r3"/></animateMotion></g><g><g transform="translate(0,11)"><g transform="scale(1.45)"><g><rect x="-9" y="-3.5" width="18" height="7" rx="3.5" fill="#33414F"/><circle cx="2" cy="0" r="3.6" fill="#FFD400"/></g></g></g><animateMotion dur="12s" begin="-2s" repeatCount="indefinite" rotate="auto" ><mpath href="#r3"/></animateMotion></g><g><g transform="translate(0,11)"><g transform="scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#1B1C1F"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-5" y="-4" width="9" height="8" rx="2" fill="#FFD400" stroke="#1B1B1D" stroke-width="1"/></g></g></g><animateMotion dur="19s" begin="-11s" repeatCount="indefinite" rotate="auto" ><mpath href="#r3"/></animateMotion></g><g><g transform="translate(0,-11)"><g transform="rotate(180) scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#11845A"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-4" y="-5.5" width="10" height="11" rx="3" fill="#CFE2F8" opacity=".95"/></g></g></g><animateMotion dur="21s" begin="-7s" repeatCount="indefinite" rotate="auto" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r4"/></animateMotion></g><g><g transform="translate(0,11)"><g transform="scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#2F74D0"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-4" y="-5.5" width="10" height="11" rx="3" fill="#CFE2F8" opacity=".95"/></g></g></g><animateMotion dur="25s" begin="-16s" repeatCount="indefinite" rotate="auto" ><mpath href="#r4"/></animateMotion></g><g><g transform="translate(0,11)"><g transform="scale(1.45)"><g><rect x="-9" y="-3.5" width="18" height="7" rx="3.5" fill="#33414F"/><circle cx="2" cy="0" r="3.6" fill="#FFD400"/></g></g></g><animateMotion dur="14s" begin="-4s" repeatCount="indefinite" rotate="auto" ><mpath href="#r4"/></animateMotion></g><g><g transform="translate(0,11)"><g transform="scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#C9CED6"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-4" y="-5.5" width="10" height="11" rx="3" fill="#CFE2F8" opacity=".95"/></g></g></g><animateMotion dur="12s" begin="-6s" repeatCount="indefinite" rotate="auto" ><mpath href="#r5"/></animateMotion></g><g><g transform="translate(0,-11)"><g transform="rotate(180) scale(1.45)"><g><rect x="-15" y="-7.5" width="30" height="15" rx="6" fill="#2F74D0"/><rect x="9" y="-6" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="9" y="3" width="4" height="3" rx="1" fill="#FFF3A6"/><rect x="-5" y="-4" width="9" height="8" rx="2" fill="#FFD400" stroke="#1B1B1D" stroke-width="1"/></g></g></g><animateMotion dur="13s" begin="-3s" repeatCount="indefinite" rotate="auto" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#r6"/></animateMotion></g></g><path id="pp0" d="M370 312 H410" fill="none"/><circle r="4.5" fill="#2F74D0"><animateMotion dur="9s" begin="0s" repeatCount="indefinite" keyPoints="0;1;1;0;0" keyTimes="0;.4;.5;.9;1" calcMode="linear"><mpath href="#pp0"/></animateMotion></circle><path id="pp1" d="M330 230 V270" fill="none"/><circle r="4.5" fill="#D0342C"><animateMotion dur="11s" begin="-4s" repeatCount="indefinite" keyPoints="0;1;1;0;0" keyTimes="0;.4;.5;.9;1" calcMode="linear"><mpath href="#pp1"/></animateMotion></circle><path id="pp2" d="M1045 530 H1085" fill="none"/><circle r="4.5" fill="#11845A"><animateMotion dur="10s" begin="-2s" repeatCount="indefinite" keyPoints="0;1;1;0;0" keyTimes="0;.4;.5;.9;1" calcMode="linear"><mpath href="#pp2"/></animateMotion></circle><path id="pp3" d="M800 635 V675" fill="none"/><circle r="4.5" fill="#FFD400"><animateMotion dur="12s" begin="-6s" repeatCount="indefinite" keyPoints="0;1;1;0;0" keyTimes="0;.4;.5;.9;1" calcMode="linear"><mpath href="#pp3"/></animateMotion></circle>
+</svg>
+<header class="topbar" id="topbar"></header>
+<div class="app">
+  <aside class="side" id="side"></aside>
+  <div class="col">
+  <main id="main"><div class="wrap"><div class="empty">Loading your workspace…</div></div></main>
+<div class="scene" aria-hidden="true">
+  <div class="walkway"></div>
+  <div class="sign s1" style="left:7%;--h:46px"><svg width="34" height="34" viewBox="0 0 34 34"><path d="M10 1h14l9 9v14l-9 9H10l-9-9V10z" fill="#D2332B" stroke="#fff" stroke-width="2"/><text x="17" y="21" text-anchor="middle" font-family="Nunito,Arial,sans-serif" font-weight="800" font-size="9" fill="#fff">STOP</text></svg><div class="pole"></div></div>
+  <div class="sign s2" style="left:30%;--h:52px"><svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#D2332B" stroke-width="4"/><text x="16" y="21" text-anchor="middle" font-family="Nunito,Arial,sans-serif" font-weight="800" font-size="13" fill="#111">40</text></svg><div class="pole"></div></div>
+  <div class="sign s3" style="left:58%;--h:40px"><svg width="34" height="34" viewBox="0 0 34 34"><rect x="1" y="1" width="32" height="32" rx="4" fill="#2F74D0" stroke="#fff" stroke-width="2"/><path d="M17 5 30 28H4z" fill="#fff"/><circle cx="17.5" cy="13" r="2" fill="#111"/><path d="M17 15.5l-1.5 5 -3 4.5M16 18l3 2.5 1 4.5M16 17l-3 2" stroke="#111" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg><div class="pole"></div></div>
+  <div class="sign s4" style="left:69%;--h:58px"><div class="tlight"><i class="r"></i><i class="y"></i><i class="g"></i></div><div class="pole"></div></div>
+  <div class="sign s5" style="left:46%;--h:44px"><svg width="34" height="30" viewBox="0 0 34 30"><path d="M17 2 32 28H2z" fill="#fff" stroke="#D2332B" stroke-width="3.5" stroke-linejoin="round"/><path d="M11 23c2-6 4-8 6-8s4 2 6 8" stroke="#111" stroke-width="2" fill="none"/><circle cx="17" cy="12" r="1.8" fill="#111"/></svg><div class="pole"></div></div>
+  <div class="ped" style="--d:58s;--dl:-8s"><svg width="22" height="46" viewBox="0 0 22 46"><g class="bob"><line class="lg a" x1="11" y1="26" x2="11" y2="43" stroke="#1B1C1F" stroke-width="4" stroke-linecap="round"/><line class="lg b" x1="11" y1="26" x2="11" y2="43" stroke="#1B1C1F" stroke-width="4" stroke-linecap="round"/><line class="ar a" x1="11" y1="13" x2="11" y2="25" stroke="#8D5A3B" stroke-width="3" stroke-linecap="round"/><rect x="7" y="11" width="8" height="16" rx="4" fill="#2F74D0"/><line class="ar b" x1="11" y1="13" x2="11" y2="25" stroke="#8D5A3B" stroke-width="3" stroke-linecap="round"/><circle cx="11" cy="6" r="4.8" fill="#8D5A3B"/></g></svg></div>
+  <div class="ped l" style="--d:72s;--dl:-30s"><svg width="22" height="46" viewBox="0 0 22 46"><g class="bob"><line class="lg a" x1="11" y1="26" x2="11" y2="43" stroke="#3A4A63" stroke-width="4" stroke-linecap="round"/><line class="lg b" x1="11" y1="26" x2="11" y2="43" stroke="#3A4A63" stroke-width="4" stroke-linecap="round"/><line class="ar a" x1="11" y1="13" x2="11" y2="25" stroke="#C68B5E" stroke-width="3" stroke-linecap="round"/><rect x="7" y="11" width="8" height="16" rx="4" fill="#FFD900"/><line class="ar b" x1="11" y1="13" x2="11" y2="25" stroke="#C68B5E" stroke-width="3" stroke-linecap="round"/><circle cx="11" cy="6" r="4.8" fill="#C68B5E"/></g></svg></div>
+  <div class="ped" style="--d:66s;--dl:-44s"><svg width="22" height="46" viewBox="0 0 22 46"><g class="bob"><line class="lg a" x1="11" y1="26" x2="11" y2="43" stroke="#55606E" stroke-width="4" stroke-linecap="round"/><line class="lg b" x1="11" y1="26" x2="11" y2="43" stroke="#55606E" stroke-width="4" stroke-linecap="round"/><line class="ar a" x1="11" y1="13" x2="11" y2="25" stroke="#5C3A26" stroke-width="3" stroke-linecap="round"/><rect x="7" y="11" width="8" height="16" rx="4" fill="#D2332B"/><line class="ar b" x1="11" y1="13" x2="11" y2="25" stroke="#5C3A26" stroke-width="3" stroke-linecap="round"/><circle cx="11" cy="6" r="4.8" fill="#5C3A26"/></g></svg></div>
+  <div class="asphalt"><div class="zebra"></div>
+    <div class="veh r lane-b" style="--d:13s;--dl:-2s"><svg width="124" height="60" viewBox="0 -12 120 60"><rect x="56" y="-11" width="30" height="13" rx="3" fill="#FFD900" stroke="#1B1B1D" stroke-width="1.2"/><text x="71" y="-1.8" text-anchor="middle" font-family="Nunito,Arial,sans-serif" font-weight="800" font-size="7.4" fill="#1B1B1D">TRUSTY</text><rect x="68" y="2" width="6" height="4" fill="#1B1B1D"/><path d="M6 35 8 25q2-5 9-6l22-2 13-10q4-3 10-3h21q6 0 10 5l9 9 10 3q6 2 6 7v7z" fill="#1B1C1F"/><path d="M44 18 55 9q2-1.5 7-1.5h8V18zM74 7.5h8q4 0 7 4l5 6.5H74z" fill="#BFD8F5"/><rect x="108" y="24" width="7" height="3.5" rx="1.5" fill="#FFF3A6"/><rect x="5" y="26" width="4" height="4" rx="1" fill="#E03A2F"/><g class="wheel"><circle cx="30" cy="36" r="8.5" fill="#111"/><circle cx="30" cy="36" r="3.8" fill="#C7CDD4"/><rect x="29" y="28" width="2" height="5" fill="#C7CDD4"/></g><g class="wheel"><circle cx="93" cy="36" r="8.5" fill="#111"/><circle cx="93" cy="36" r="3.8" fill="#C7CDD4"/><rect x="92" y="28" width="2" height="5" fill="#C7CDD4"/></g></svg></div>
+    <div class="veh r lane-b" style="--d:13s;--dl:-8.5s"><svg width="120" height="48" viewBox="0 0 120 48"><path d="M6 35 8 25q2-5 9-6l22-2 13-10q4-3 10-3h21q6 0 10 5l9 9 10 3q6 2 6 7v7z" fill="#2F74D0"/><path d="M44 18 55 9q2-1.5 7-1.5h8V18zM74 7.5h8q4 0 7 4l5 6.5H74z" fill="#BFD8F5"/><rect x="108" y="24" width="7" height="3.5" rx="1.5" fill="#FFF3A6"/><rect x="5" y="26" width="4" height="4" rx="1" fill="#E03A2F"/><g class="wheel"><circle cx="30" cy="36" r="8.5" fill="#111"/><circle cx="30" cy="36" r="3.8" fill="#C7CDD4"/><rect x="29" y="28" width="2" height="5" fill="#C7CDD4"/></g><g class="wheel"><circle cx="93" cy="36" r="8.5" fill="#111"/><circle cx="93" cy="36" r="3.8" fill="#C7CDD4"/><rect x="92" y="28" width="2" height="5" fill="#C7CDD4"/></g></svg></div>
+    <div class="veh l lane-a" style="--d:15s;--dl:-4s"><svg width="120" height="48" viewBox="0 0 120 48"><path d="M6 35 8 25q2-5 9-6l22-2 13-10q4-3 10-3h21q6 0 10 5l9 9 10 3q6 2 6 7v7z" fill="#C9CED6"/><path d="M44 18 55 9q2-1.5 7-1.5h8V18zM74 7.5h8q4 0 7 4l5 6.5H74z" fill="#9CB8D6"/><rect x="108" y="24" width="7" height="3.5" rx="1.5" fill="#FFF3A6"/><rect x="5" y="26" width="4" height="4" rx="1" fill="#E03A2F"/><g class="wheel"><circle cx="30" cy="36" r="8.5" fill="#111"/><circle cx="30" cy="36" r="3.8" fill="#C7CDD4"/><rect x="29" y="28" width="2" height="5" fill="#C7CDD4"/></g><g class="wheel"><circle cx="93" cy="36" r="8.5" fill="#111"/><circle cx="93" cy="36" r="3.8" fill="#C7CDD4"/><rect x="92" y="28" width="2" height="5" fill="#C7CDD4"/></g></svg></div>
+    <div class="veh l lane-a" style="--d:11s;--dl:-9s"><svg width="74" height="52" viewBox="0 0 74 52"><g class="wheel"><circle cx="14" cy="40" r="10" fill="#111"/><circle cx="14" cy="40" r="4" fill="#C7CDD4"/><rect x="13" y="31" width="2" height="5" fill="#C7CDD4"/></g><g class="wheel"><circle cx="60" cy="40" r="10" fill="#111"/><circle cx="60" cy="40" r="4" fill="#C7CDD4"/><rect x="59" y="31" width="2" height="5" fill="#C7CDD4"/></g><path d="M14 40 28 28h18l14 12" stroke="#5E6B78" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M24 27q8-6 20-4l8 6H26z" fill="#2B2E33"/><path d="M50 22l8 10" stroke="#9AA3AE" stroke-width="3" stroke-linecap="round"/><rect x="56" y="20" width="8" height="4" rx="2" fill="#FFF3A6"/><path d="M33 23 36 10l8 0 4 12" fill="#2F74D0"/><path d="M36 22 30 34" stroke="#1B1B1D" stroke-width="4" stroke-linecap="round"/><circle cx="41" cy="7" r="6.5" fill="#FFD900"/><rect x="42" y="5" width="6" height="3" rx="1.5" fill="#1B1B1D"/></svg></div>
+  </div>
+  <div class="gantry"><div class="post" style="left:6px"></div><div class="post" style="right:6px"></div>
+    <div class="board"><div><b>Trusty Autorijschool</b><small>Rijbewijs A · B</small></div><span class="arrow">→</span></div></div>
+</div>
+  </div>
+</div>
+<nav class="bottom" id="bottom"></nav>
+<div id="modal" hidden></div>
+<div id="toast" hidden></div>
+<input type="file" id="filePick" hidden>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+"use strict";
+/* ───────────────── constants ───────────────── */
+const INSTRUCTORS = ["Raichel","Raidjir"];
+const LOGO = "assets/trusty-logo.png";
+let logoData=null, logoImg=null;
+const VEH = {
+  accent:{name:"Hyundai Accent", trans:"Automatic", lic:"B", short:"Accent"},
+  versa:{name:"Nissan Versa", trans:"Manual", lic:"B", short:"Versa"},
+  moto:{name:"Motorcycle", trans:"Motor", lic:"A", short:"Motor"}
+};
+const PKG_LESSONS = [3,6,10,15];
+const INCLUDED = ["Les di teoria inlimita gratis","Papel nan nesesario (storting + commissie)","Vehikulo pa bo eksamen praktiko"];
+const EXP_CATS = ["Fuel","Vehicle maintenance","Insurance","Vehicle tax / registration","Exam fees (storting / commissie)","Phone & internet","Marketing & social","Office & supplies","Rent","Bank fees","Other"];
+const METHODS = ["Cash","Bank transfer","Card / PIN","Other"];
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_L = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const DEFAULTS = {
+  business:"Trusty Autorijschool", address:"Curaçao", phone:"", email:"", crib:"", kvk:"", bank:"",
+  obRate:6, obBasis:"cash", invoicePrefix:"TA",
+  prices:{accent:[450,650,875,1100], versa:[400,575,775,950], moto:[375,525,725,900]},
+  caption:"Pabien {name}! 🎉 Bo a pasa bo eksamen pa rijbewijs {license}. Nos ta orguyoso di bo! 🚗\n\nBo tambe ke haña bo rijbewijs? Manda nos un mensahe.\n\n#trustyautorijschool #rijbewijs #curacao",
+  reminder:"Bon dia {name}! Rekordatorio di bo les di manehá: {date} na {time} ku {instructor} ({vehicle}). Te ora! – Trusty Autorijschool",
+  templateId:null, photoBox:{x:0,y:0,w:1080,h:1350}
+};
+
+/* ───────────────── helpers ───────────────── */
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const num = v => { const n = parseFloat(String(v??"").replace(",",".")); return isFinite(n)?n:0; };
+const money = n => "XCG "+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const money0 = n => "XCG "+Math.round(Number(n)||0).toLocaleString("en-US");
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseYmd = s => { const [y,m,d]=(s||"").split("-").map(Number); return new Date(y||1970,(m||1)-1,d||1); };
+const today = () => ymd(new Date());
+const addDays = (s,n)=>{ const d=parseYmd(s); d.setDate(d.getDate()+n); return ymd(d); };
+const niceDate = s => { if(!s) return "—"; const d=parseYmd(s); return DOW[d.getDay()]+" "+d.getDate()+" "+MONTHS[d.getMonth()]+(d.getFullYear()!==new Date().getFullYear()?" "+d.getFullYear():""); };
+const longDate = s => { const d=parseYmd(s); return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getDay()]+", "+d.getDate()+" "+MONTHS_L[d.getMonth()]+" "+d.getFullYear(); };
+const relDay = s => { const t=today(); if(s===t) return "Today"; if(s===addDays(t,1)) return "Tomorrow"; if(s===addDays(t,-1)) return "Yesterday"; return niceDate(s); };
+const initials = n => (n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+const firstName = n => (n||"").trim().split(/\s+/)[0]||"";
+const shortName = n => { const p=(n||"").trim().split(/\s+/); return p.length>1? p[0]+" "+p[p.length-1][0]+".":p[0]||""; };
+const blobUrl = id => "/_blob/"+id;
+const fill = (tpl,map)=>String(tpl||"").replace(/\{(\w+)\}/g,(m,k)=> k in map ? map[k] : m);
+const waNumber = p => { let d=String(p||"").replace(/\D/g,""); if(!d) return ""; if(d.startsWith("00")) d=d.slice(2); if(d.length===7) d="5999"+d; else if(d.length===8 && d.startsWith("9")) d="599"+d; return d; };
+const csvCell = v => { const s=String(v??""); return /[",\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+const lsGet = (k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} };
+const lsSet = (k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
+
+const ICON = {
+  home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2 .7 3.2 2.4 3.5 5.2"/>',
+  cal:'<rect x="3" y="4.5" width="18" height="16.5" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
+  receipt:'<path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  camera:'<rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M8.5 6 10 3.5h4L15.5 6"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  right:'<path d="m9 6 6 6-6 6"/>', left:'<path d="m15 6-6 6 6 6"/>',
+  check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>', x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  chat:'<path d="M20 12a8 8 0 0 1-11.8 7L4 20l1.1-4A8 8 0 1 1 20 12z"/>',
+  down:'<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>', up:'<path d="M12 20V9M7 13.5l5-5 5 5M5 4h14"/>',
+  car:'<path d="M5 17h14M3.5 17v-4.2l2-5A2 2 0 0 1 7.4 6.5h9.2a2 2 0 0 1 1.9 1.3l2 5V17"/><path d="M3.5 12.5h17"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
+  moto:'<circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5 9 10h5l4.5 6.5M14 10l-1.5-3.5H10M15 7h3"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+  alert:'<path d="M12 3 2.5 20h19z"/><path d="M12 10v4.5M12 17.5v.1"/>',
+  id:'<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16c.5-1.5 1.7-2.3 3.2-2.3s2.7.8 3.2 2.3M14.5 10h4M14.5 13.5h3"/>',
+  coin:'<circle cx="12" cy="12" r="9"/><path d="M14.8 9.2c-.5-.9-1.6-1.4-2.8-1.4-1.6 0-2.8.8-2.8 2.1 0 2.9 5.8 1.5 5.8 4.3 0 1.3-1.3 2.1-3 2.1-1.3 0-2.5-.6-3-1.6M12 6v1.8M12 16.3V18"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  copy:'<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/>',
+  file:'<path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+  star:'<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
+  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+  grid:'<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
+  ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'
+};
+const ic = (n,extra="") => `<svg class="i-${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${ICON[n]||""}</svg>`;
+const vehIcon = v => ic(v==="moto"?"moto":"car");
+
+/* ───────────────── state ───────────────── */
+let db=null, assets=null, downloads=null;
+const S = {
+  clients:[], payments:[], lessons:[], expenses:[], invoices:[], settings:{},
+  ready:{}, offline:false,
+  view: lsGet("tr.view","home"), clientId:null,
+  me: lsGet("tr.me",""), mineOnly: lsGet("tr.mine",false),
+  q:"", cfilter:"active", day: today(), dayInst:"all", year:new Date().getFullYear(), month:new Date().getMonth(),
+  expMonth: today().slice(0,7), socialClient:null, socialPhoto:null, socialZoom:1, socialX:0, socialY:0, socialMode:"passed"
+};
+const cfg = () => { const s=S.settings||{}; return {...DEFAULTS,...s, prices:{...DEFAULTS.prices,...(s.prices||{})}}; };
+const client = id => S.clients.find(c=>c.id===id);
+const instOf = (c) => c?.instructor || "";
+
+function totals(c){
+  const inv = S.invoices.filter(i=>i.clientId===c.id && i.type==="invoice" && !i.void);
+  const total = inv.reduce((a,i)=>a+num(i.amount),0);
+  const paid = S.payments.filter(p=>p.clientId===c.id).reduce((a,p)=>a+num(p.amount),0);
+  return {total, paid, balance: Math.round((total-paid)*100)/100};
+}
+function pkgLabel(c){ return c.pkg!=null && c.pkg>=0 ? "Pakete "+(c.pkg+1) : "Custom"; }
+
+/* ───────────────── data layer ───────────────── */
+const COLS = ["clients","payments","lessons","expenses","invoices"];
+async function loadLogo(){ try{ const b=await (await fetch(LOGO)).blob(); logoData=await new Promise(r=>{const f=new FileReader(); f.onload=()=>r(f.result); f.readAsDataURL(b);}); logoImg=await loadImg(LOGO); if(S.view==="social") drawSocial(); }catch(e){} }
+async function boot(){
+  { const hv=fromHash((location.hash||"").slice(1)); if(VIEWS.includes(hv)) S.view=hv; }
+  S.anim=true; renderShell(); render(); loadLogo();
+  const timer = setTimeout(()=>{ if(!db){ S.offline=true; render(); } },10000);
+  try{
+    [db, assets, downloads] = await Promise.all([claude.use("db"), claude.use("assets"), claude.use("downloads")]);
+  }catch(e){ db=null; }
+  clearTimeout(timer);
+  if(!db){ S.offline=true; render(); return; }
+  for(const col of COLS){
+    db.collection(col).onSnapshot(snap=>{
+      S[col] = snap.docs.map(d=>({...d.data(), id:d.id}));
+      S.ready[col]=true; scheduleRender();
+    }, err=>{ toast("Sync problem ("+col+"): "+(err.message||err.code)); });
+  }
+  db.doc("settings/main").onSnapshot(s=>{ S.settings = s.exists? {...s.data()}:{}; S.ready.settings=true; scheduleRender(); });
+}
+let rq=false; function scheduleRender(){ if(rq) return; rq=true; requestAnimationFrame(()=>{ rq=false; render(); }); }
+async function put(col,id,data){ if(!db) throw new Error("Not connected"); await db.collection(col).doc(id).set(data); }
+async function patch(col,id,data){ if(!db) throw new Error("Not connected"); await db.collection(col).doc(id).update(data); }
+async function remove(col,id){ if(!db) throw new Error("Not connected"); await db.collection(col).doc(id).delete(); }
+async function saveSettings(p){ const next={...S.settings,...p}; await db.doc("settings/main").set(next); }
+async function safe(fn, okMsg){ try{ await fn(); if(okMsg) toast(okMsg); return true; }catch(e){ console.error(e); toast(errMsg(e)); return false; } }
+function errMsg(e){ const c=e&&e.code; if(c==="invalid_argument") return "You don't have permission to change data here. Ask the owner to share it with you as Editor."; if(c==="quota_exceeded") return "Storage is full. Delete old items and try again."; return (e&&e.message)||"Something went wrong. Try again."; }
+
+/* invoices */
+function nextNumber(type, dateStr){
+  const y = (dateStr||today()).slice(0,4);
+  const same = S.invoices.filter(i=>i.type===type && String(i.year)===y);
+  const seq = same.reduce((m,i)=>Math.max(m,num(i.seq)),0)+1;
+  const p = cfg().invoicePrefix||"TA";
+  return {seq, year:y, number: p+(type==="receipt"?"-R":"-F")+y+"-"+String(seq).padStart(3,"0")};
+}
+async function createInvoice(c, lines, date, extra={}){
+  const n = nextNumber("invoice", date); const id=uid();
+  const amount = lines.reduce((a,l)=>a+num(l.amount),0);
+  const doc = {id, type:"invoice", ...n, date, clientId:c.id, clientName:c.name, clientPhone:c.phone||"", clientIdNumber:c.idNumber||"", clientAddress:c.address||"",
+    vehicle:c.vehicle, lines, amount, createdAt:new Date().toISOString(), createdBy:S.me||"", ...extra};
+  await put("invoices", id, doc); return doc;
+}
+async function recordPayment(c, amount, date, method, note, base){
+  const t = base || totals(c); const pid=uid(); const n=nextNumber("receipt", date); const rid=uid();
+  const pay = {id:pid, clientId:c.id, amount, date, method, note:note||"", receiptId:rid, createdAt:new Date().toISOString(), by:S.me||""};
+  const rec = {id:rid, type:"receipt", ...n, date, clientId:c.id, clientName:c.name, clientPhone:c.phone||"", clientIdNumber:c.idNumber||"", clientAddress:c.address||"",
+    vehicle:c.vehicle, paymentId:pid, method, amount, totalAtTime:t.total, paidAfter:t.paid+amount, balanceAfter:Math.round((t.total-t.paid-amount)*100)/100, note:note||"", createdAt:new Date().toISOString(), createdBy:S.me||""};
+  await put("payments", pid, pay); await put("invoices", rid, rec);
+}
+
+/* files */
+async function saveFile(filename, data){
+  if(!downloads){ toast("Downloads aren't available in this view. Open the page in Claude."); return; }
+  try{ await downloads.save({filename, data}); }
+  catch(e){ if(e&&e.code==="declined") return; toast(e&&e.code==="rate_limited"?"A save prompt is already open.":"Couldn't save the file ("+((e&&e.code)||"error")+")."); }
+}
+function pickFile(accept){ return new Promise(res=>{ const f=$("#filePick"); f.value=""; f.accept=accept; f.onchange=()=>res(f.files[0]||null); f.click(); }); }
+async function shrinkImage(file, max=1800, q=.85){
+  if(!file.type.startsWith("image/") || file.type==="image/svg+xml") return file;
+  const url=URL.createObjectURL(file);
+  try{
+    const img = await loadImg(url); const s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    if(s===1 && file.size<1.5e6) return file;
+    const cv=document.createElement("canvas"); cv.width=Math.round(img.naturalWidth*s); cv.height=Math.round(img.naturalHeight*s);
+    cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+    return await new Promise(r=>cv.toBlob(b=>r(b||file),"image/jpeg",q));
+  } finally { URL.revokeObjectURL(url); }
+}
+function loadImg(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+async function uploadFile(file, max){
+  if(!assets) throw new Error("Uploading needs Editor access to this page.");
+  const blob = await shrinkImage(file, max);
+  try{ return await assets.upload(blob, blob.type?{type:blob.type}:undefined); }
+  catch(e){ throw new Error(e&&e.code==="too_large"?"That file is too large (max 20 MB).":e&&e.code==="unsupported_type"?"Use a photo (JPG/PNG) or a PDF.":"Upload failed ("+((e&&e.code)||"error")+")."); }
+}
+
+/* ───────────────── UI primitives ───────────────── */
+let toastT; function toast(m){ const t=$("#toast"); t.textContent=m; t.hidden=false; t.classList.remove("pop"); void t.offsetWidth; t.classList.add("pop"); clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,3200); }
+function openModal(html, wide){ const m=$("#modal"); m.innerHTML=`<div class="sheet${wide?" wide":""}" role="dialog" aria-modal="true">${html}</div>`; m.hidden=false; const f=m.querySelector("input:not([type=hidden]),select,textarea"); if(f && window.innerWidth>600) setTimeout(()=>f.focus(),30); }
+function closeModal(){ const m=$("#modal"); m.hidden=true; m.innerHTML=""; }
+$("#modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeModal(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !$("#modal").hidden) closeModal(); });
+const head = (title, sub) => `<div class="sheet-head"><div><h2>${title}</h2>${sub?`<div class="muted small" style="margin-top:4px">${sub}</div>`:""}</div><button class="icon-btn" data-act="close" aria-label="Close">${ic("x")}</button></div>`;
+const formVals = (root) => { const o={}; root.querySelectorAll("[name]").forEach(el=>{ o[el.name]= el.type==="checkbox"?el.checked:el.value; }); return o; };
+const opt = (v,l,sel)=>`<option value="${esc(v)}"${String(v)===String(sel)?" selected":""}>${esc(l)}</option>`;
+const avatar = (c,cls="") => `<div class="avatar ${cls}">${c&&c.photoId?`<img src="${blobUrl(esc(c.photoId))}" alt="">`:esc(initials(c&&c.name))}</div>`;
+
+/* ───────────────── shell / nav ───────────────── */
+const NAV = [["home","Home","home"],["clients","Clients","users"],["schedule","Schedule","cal"],["finance","Finance","chart"],["expenses","Expenses","receipt"],["social","Social post","camera"],["settings","Settings","gear"]];
+function renderShell(){
+  $("#topbar").innerHTML = `<div class="topbar-in">
+     <button class="brand" data-act="nav" data-v="home" aria-label="Trusty home"><span class="logo-circle"><img src="${LOGO}" alt="Trusty"></span><span class="sep"></span><span class="name"><b>Ofisina</b><span>Team workspace</span></span></button>
+     <nav class="tabs" aria-label="Main">${NAV.map(([v,l,i])=>`<button class="tab" data-act="nav" data-v="${v}" title="${l}" aria-label="${l}">${ic(i)}<span>${l}</span></button>`).join("")}</nav>
+     <span class="spacer"></span>
+     <div class="seg" role="group" aria-label="Working as"><span class="lbl">Working as</span>${INSTRUCTORS.map(n=>`<button data-act="me" data-v="${n}">${n}</button>`).join("")}</div>
+     <button class="btn primary" data-act="quick">${ic("plus")} New</button></div>`;
+  $("#side").innerHTML = `${NAV.map(([v,l,i])=>`<button class="nav-btn" data-act="nav" data-v="${v}">${ic(i)}<span>${l}</span></button>`).join("")}
+   <div class="foot">Trusty Autorijschool · Ofisina</div>`;
+  $("#bottom").innerHTML = `<button data-act="nav" data-v="home">${ic("home")}Home</button><button data-act="nav" data-v="clients">${ic("users")}Clients</button>
+   <button class="plus" data-act="quick" aria-label="Add">${ic("plus")}</button>
+   <button data-act="nav" data-v="schedule">${ic("cal")}Schedule</button><button data-act="more">${ic("grid")}More</button>`;
+}
+function syncNav(){
+  document.querySelectorAll("[data-act=nav]").forEach(b=>{ const on=b.dataset.v===S.view || (S.view==="client"&&b.dataset.v==="clients"); b.classList.toggle("on", on); if(b.classList.contains("tab")) b.setAttribute("aria-current", on?"page":"false"); });
+  document.querySelectorAll("#topbar [data-act=me]").forEach(b=>{ b.classList.toggle("on", b.dataset.v===S.me); b.setAttribute("aria-pressed", b.dataset.v===S.me); });
+  const td=$("#tbDate"); if(td) td.textContent=longDate(today());
+  const more = $("#bottom [data-act=more]"); if(more) more.classList.toggle("on", ["finance","expenses","social","settings"].includes(S.view));
+}
+
+function render(){
+  const a=document.activeElement, aid=a&&a.id&&$("#main").contains(a)?a.id:null, ss=aid&&a.selectionStart!=null?[a.selectionStart,a.selectionEnd]:null;
+  const V = {home:vHome, clients:vClients, client:vClient, schedule:vSchedule, finance:vFinance, expenses:vExpenses, social:vSocial, settings:vSettings}[S.view]||vHome;
+  let banner="";
+  if(S.offline) banner=`<div class="banner">Can't reach the shared database from this view. Open this page in Claude while signed in to see and save your data.</div>`;
+  $("#main").innerHTML = `<div class="wrap${S.anim?" enter":""}">${banner}${V()}</div>`; S.anim=false;
+  syncNav();
+  if(aid){ const el=document.getElementById(aid); if(el){ el.focus(); if(ss) try{el.setSelectionRange(ss[0],ss[1]);}catch(e){} } }
+  if(S.view==="social") drawSocial();
+}
+const VIEWS=["home","clients","schedule","finance","expenses","social","settings"];
+const toHash=v=>v==="settings"?"app-settings":v, fromHash=h=>h==="app-settings"?"settings":h;
+function go(v){ S.anim=true; S.view=v; if(v!=="client"){ lsSet("tr.view",v); try{ if(location.hash.slice(1)!==toHash(v)) location.hash=toHash(v); }catch(e){} } render(); window.scrollTo(0,0); }
+window.addEventListener("hashchange",()=>{ const v=fromHash(location.hash.slice(1)); if(VIEWS.includes(v)&&v!==S.view){ S.anim=true; S.view=v; render(); } });
+
+/* ───────────────── views ───────────────── */
+function loadingOr(fn){ return (!S.ready.clients && !S.offline) ? `<div class="empty">Loading…</div>` : fn(); }
+function lessonsFor(day){ return S.lessons.filter(l=>l.date===day && l.status!=="cancelled" && (!S.mineOnly||!S.me||l.instructor===S.me)).sort((a,b)=>(a.time||"").localeCompare(b.time||"")); }
+
+function vHome(){
+  const h=new Date().getHours(), greet=h<12?"Bon dia":h<18?"Bon tardi":"Bon nochi";
+  const t=today(), tm=addDays(t,1), nowT=pad(new Date().getHours())+":"+pad(new Date().getMinutes());
+  const todayL = lessonsFor(t);
+  const upcoming = S.lessons.filter(l=>l.status==="planned" && (l.date>t || (l.date===t && (l.time||"")>=nowT)) && (!S.mineOnly||!S.me||l.instructor===S.me)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const next = upcoming[0];
+  const active = S.clients.filter(c=>(c.status||"active")==="active");
+  let outstanding=0, owing=0; S.clients.forEach(c=>{ const b=totals(c).balance; if(b>0.009){ outstanding+=b; owing++; } });
+  const ym=t.slice(0,7); const monthRev = S.payments.filter(p=>(p.date||"").startsWith(ym)).reduce((a,p)=>a+num(p.amount),0);
+  const monthExp = S.expenses.filter(e=>(e.date||"").startsWith(ym)).reduce((a,e)=>a+num(e.amount),0);
+  const toRemind = S.lessons.filter(l=>l.status==="planned" && !l.reminded && (l.date===t||l.date===tm));
+  const idsToPrint = active.filter(c=>!c.idPrinted);
+  const usedUp = active.filter(c=>num(c.lessonsTaken)>=num(c.lessonsIncluded) && num(c.lessonsIncluded)>0);
+  const examsSoon = S.clients.filter(c=>c.examDate && c.examDate>=t && c.examDate<=addDays(t,7) && !c.examResult);
+  const nc = next && lessonClients(next)[0];
+  const alerts = [
+    toRemind.length && {i:"bell",tone:"hot",t:`${toRemind.length} lesson${toRemind.length>1?"s":""} today or tomorrow without a reminder`,act:"nav",v:"schedule"},
+    idsToPrint.length && {i:"id",tone:"warn",t:`${idsToPrint.length} client ID${idsToPrint.length>1?"s":""} still to print for the exam date`,act:"cfilter",v:"noid"},
+    owing && {i:"coin",tone:"bad",t:`${owing} client${owing>1?"s":""} with an open balance · ${money0(outstanding)}`,act:"cfilter",v:"owing"},
+    usedUp.length && {i:"star",tone:"plain",t:`${usedUp.length} client${usedUp.length>1?"s have":" has"} used all package lessons`,act:"cfilter",v:"usedup"},
+    examsSoon.length && {i:"cal",tone:"good",t:`${examsSoon.length} exam${examsSoon.length>1?"s":""} in the next 7 days`,act:"cfilter",v:"exam"}
+  ].filter(Boolean);
+  return `
+  <div class="hello">
+    <div><div class="eyebrow"><i></i>${esc(longDate(t))}</div><h1>${greet}${S.me?`, <span class="who">${esc(S.me)}</span>`:""}</h1>
+    ${!S.me?`<div class="muted" style="margin-top:8px">Pick who's working in the bar at the top.</div>`:""}</div>
+    <span class="hello-car" aria-hidden="true"><svg width="54" height="22" viewBox="0 -12 120 60"><rect x="56" y="-11" width="30" height="13" rx="3" fill="#FFD400" stroke="#1B1B1D" stroke-width="1.2"/><path d="M6 35 8 25q2-5 9-6l22-2 13-10q4-3 10-3h21q6 0 10 5l9 9 10 3q6 2 6 7v7z" fill="#2F74D0"/><path d="M44 18 55 9q2-1.5 7-1.5h8V18zM74 7.5h8q4 0 7 4l5 6.5H74z" fill="#CFE2F8"/><circle cx="30" cy="36" r="8.5" fill="#111"/><circle cx="93" cy="36" r="8.5" fill="#111"/></svg></span>
+    <div class="seg theme" role="group" aria-label="Lessons shown"><button class="${S.mineOnly?"":"on"}" data-act="mineSet" data-v="0">All lessons</button><button class="${S.mineOnly?"on":""}" data-act="mineSet" data-v="1" ${S.me?"":"disabled"}>Only mine</button></div>
+  </div>
+  ${loadingOr(()=> !S.clients.length ? startCard() : `
+  <div class="split-top">
+    <div class="card hot" style="display:flex;flex-direction:column;gap:14px">
+      <div class="row between"><span class="eyebrow">Next lesson</span>${next?`<span class="pill hot">${esc(relDay(next.date))} · ${esc(next.time)}</span>`:""}</div>
+      ${next&&nc?`<div class="row" style="gap:14px">${avatar(nc)}<div style="min-width:0"><div class="big" style="font-size:26px">${esc(lessonWho(next))}</div><div class="muted">${esc(isTheory(next)?"Teoria (theory)":VEH[next.vehicle||nc.vehicle]?.name||"")} · with ${esc(next.instructor||"—")}</div></div></div>
+        <div class="row"><button class="btn dark" data-act="openClient" data-id="${esc(nc.id)}">Open client ${ic("right")}</button>${waBtn(next,nc,true)}</div>`
+      :`<div class="big" style="font-size:24px">No lessons planned</div><div><button class="btn dark" data-act="lessonNew">Schedule a lesson ${ic("right")}</button></div>`}
+    </div>
+    <div class="card night road">
+      <div class="stat-split">
+        <div><span class="st-ic">${ic("users")}</span><div class="big num">${active.length}</div><div class="muted small">Active clients</div></div>
+        <div><span class="st-ic">${ic("cal")}</span><div class="big num">${todayL.length}</div><div class="muted small">Lessons today</div></div>
+        <div><span class="st-ic hot">${ic("coin")}</span><div class="big orange num" style="font-size:24px">${money0(monthRev)}</div><div class="muted small">Received in ${MONTHS[new Date().getMonth()]}</div></div>
+      </div>
+      <div style="margin-top:22px;display:flex;flex-direction:column;gap:8px">
+        <div class="row between small"><span class="muted">Expenses this month</span><span class="num">${money0(monthExp)}</span></div>
+        <div class="row between small"><span class="muted">Still to collect</span><span class="num">${money0(outstanding)}</span></div>
+        <div class="bar"><i style="width:${monthRev+outstanding>0?Math.round(monthRev/(monthRev+outstanding)*100):0}%"></i></div>
+      </div>
+    </div>
+  </div>
+  ${alerts.length?`<div class="grid g2 stack">${alerts.map(a=>`<button class="alert" data-act="${a.act}" data-v="${a.v}"><span class="dot pill ${a.tone}">${ic(a.i)}</span><span class="grow" style="flex:1">${esc(a.t)}</span>${ic("right",'width="18" height="18"')}</button>`).join("")}</div>`:""}
+  <div class="section-head"><h2>Today's schedule</h2><button class="btn ghost sm" data-act="nav" data-v="schedule">Full schedule ${ic("right")}</button></div>
+  ${todayL.length?`<div class="list">${todayL.map(lessonRow).join("")}</div>`:`<div class="empty">No lessons today. Tap <b>+</b> to schedule one.</div>`}
+  <div class="section-head"><h2>Recent clients</h2><button class="btn ghost sm" data-act="nav" data-v="clients">All clients ${ic("right")}</button></div>
+  ${S.clients.length?`<div class="list">${[...S.clients].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).slice(0,4).map(clientRow).join("")}</div>`
+   :`<div class="empty"><div style="margin-bottom:12px">No clients yet. Add your first one with their package.</div><button class="btn primary" data-act="newClient">${ic("plus")} New client</button></div>`}
+  `)}`;
+}
+
+function startCard(){
+  const k=S.settings||{}; const s1=!!(k.phone||k.crib||k.kvk||k.bank); const s2=S.clients.length>0;
+  const step=(n,done,t,p,btn)=>`<div class="step${done?" done":""}"><span class="n">${done?ic("check",'width="18" height="18"'):n}</span><h3>${t}</h3><p>${p}</p>${btn}</div>`;
+  return `<div class="card night road start"><div><div class="eyebrow">Get started</div><h2 style="margin-top:6px">Set up Trusty Ofisina in three steps</h2></div>
+   <div class="steps-list">
+    ${step(1,s1,"Add your business details","Phone, CRIB and bank account appear on every invoice and receipt.",`<button class="btn sm" data-act="nav" data-v="settings">${ic("gear")} Open settings</button>`)}
+    ${step(2,s2,"Add your first client","Pick their vehicle and package. The invoice is created for you.",`<button class="btn sm primary" data-act="newClient">${ic("plus")} New client</button>`)}
+    ${step(3,false,"Schedule a lesson","Assign Raichel or Raidjir and send the WhatsApp reminder.",`<button class="btn sm" data-act="lessonNew" ${s2?"":"disabled"}>${ic("cal")} New lesson</button>`)}
+   </div></div>`;
+}
+function waBtn(l,c,onDark){
+  const num_=waNumber(c&&c.phone); if(!num_) return "";
+  const msg = reminderText(l,c);
+  return `<a class="btn ${onDark?"":"sm"}"  href="https://wa.me/${num_}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" data-act="reminded" data-id="${esc(l.id)}">${ic("chat")} ${l.reminded?"Reminded":"Remind"}</a>`;
+}
+function reminderText(l,c){ return fill(cfg().reminder,{name:firstName(c.name), date:relDay(l.date).toLowerCase()==="today"?"awe":niceDate(l.date), time:l.time||"", instructor:l.instructor||"", vehicle:isTheory(l)?"les di teoria":(VEH[l.vehicle||c.vehicle]?.name||"")}); }
+
+const isTheory = l => !!l && l.type==="theory";
+const lessonCids = l => (l.clientIds&&l.clientIds.length)? l.clientIds : (l.clientId?[l.clientId]:[]);
+const lessonClients = l => lessonCids(l).map(client).filter(Boolean);
+const lessonVehLabel = l => isTheory(l) ? "Teoria" : (VEH[l.vehicle]?.name||"");
+const lessonVehShort = l => isTheory(l) ? "Teoria" : (VEH[l.vehicle]?.short||"");
+function lessonWho(l, short){ const cs=lessonClients(l); if(!cs.length) return "Deleted client"; if(cs.length===1) return short?shortName(cs[0].name):cs[0].name; return cs.length+" clients · "+cs.map(c=>firstName(c.name)).join(", "); }
+async function adjustCounts(oldL, newL){
+  const d={};
+  const add=(l,sign)=>{ if(!l||l.status!=="done") return; const f=isTheory(l)?"theoryTaken":"lessonsTaken"; lessonCids(l).forEach(id=>{ d[id]=d[id]||{}; d[id][f]=(d[id][f]||0)+sign; }); };
+  add(oldL,-1); add(newL,+1);
+  for(const [id,fs] of Object.entries(d)){ const c=client(id); if(!c) continue; const p={}; for(const [f,v] of Object.entries(fs)) if(v) p[f]=Math.max(0,num(c[f])+v); if(Object.keys(p).length) await patch("clients",id,p); }
+}
+function lessonRow(l){
+  const cs=lessonClients(l); const c=cs[0]; const st=l.status||"planned";
+  const pill = st==="done"?`<span class="pill good">${ic("check",'width="12" height="12"')} Done</span>`:st==="noshow"?`<span class="pill bad">No-show</span>`:st==="cancelled"?`<span class="pill plain">Cancelled</span>`:(l.reminded?`<span class="pill plain">Reminded</span>`:`<span class="pill hot">Planned</span>`);
+  return `<div class="item lesson${isTheory(l)?" theory":""}"><div class="time num">${esc(l.time||"--:--")}</div>
+   <div class="grow"><span class="vlabel">${esc(lessonVehLabel(l))} · ${esc(l.instructor||"—")}</span><b>${esc(lessonWho(l))}</b><span class="muted small">${esc(l.duration||60)} min${l.note?" · "+esc(l.note):""}</span></div>
+   <div class="row acts" style="gap:8px;justify-content:flex-end">${pill}
+    ${st==="planned"&&cs.length===1?waBtn(l,c):""}${st==="planned"&&cs.length>1?`<button class="btn sm" data-act="remindGroup" data-id="${esc(l.id)}">${ic("chat")} ${l.reminded?"Reminded":"Remind all"}</button>`:""}
+    ${st==="planned"?`<button class="icon-btn" title="Mark done" aria-label="Mark done" data-act="lessonStatus" data-id="${esc(l.id)}" data-v="done">${ic("check")}</button>`:""}
+    <button class="icon-btn" title="Edit" aria-label="Edit lesson" data-act="lessonEdit" data-id="${esc(l.id)}">${ic("edit")}</button></div></div>`;
+}
+
+function clientRow(c){
+  const t=totals(c); const pct=c.lessonsIncluded?Math.min(100,Math.round(num(c.lessonsTaken)/num(c.lessonsIncluded)*100)):0;
+  const st=c.status||"active";
+  return `<button class="item" data-act="openClient" data-id="${esc(c.id)}">${avatar(c)}
+   <div class="grow"><span class="vlabel">${esc(VEH[c.vehicle]?.name||"")} · ${esc(pkgLabel(c))}</span><b>${esc(c.name)}</b>
+    <div class="row small muted" style="gap:10px;margin-top:4px"><span class="num">${num(c.lessonsTaken)}/${num(c.lessonsIncluded)} lessons</span><span class="bar" style="width:80px;display:inline-block"><i style="width:${pct}%"></i></span>${!c.idPrinted&&st==="active"?`<span class="pill warn">ID not printed</span>`:""}${st==="passed"?`<span class="pill good">Passed</span>`:""}</div></div>
+   <div class="end"><div class="num" style="font-weight:700">${t.balance>0.009?money0(t.balance):"Paid"}</div><div class="small muted">${t.balance>0.009?"left to pay":money0(t.total)}</div></div></button>`;
+}
+
+const CFILTERS = [["active","Active"],["all","All"],["owing","Owes money"],["noid","ID not printed"],["usedup","Lessons used up"],["exam","Exam soon"],["passed","Passed"],["accent","Accent"],["versa","Versa"],["moto","Motor"],["archived","Archived"]];
+function filteredClients(){
+  const q=S.q.trim().toLowerCase(), t=today();
+  return S.clients.filter(c=>{
+    const st=c.status||"active";
+    if(q && !(`${c.name} ${c.phone} ${c.idNumber}`.toLowerCase().includes(q))) return false;
+    switch(S.cfilter){
+      case "active": return st==="active";
+      case "owing": return totals(c).balance>0.009;
+      case "noid": return st==="active" && !c.idPrinted;
+      case "usedup": return st==="active" && num(c.lessonsIncluded)>0 && num(c.lessonsTaken)>=num(c.lessonsIncluded);
+      case "exam": return c.examDate && c.examDate>=t && !c.examResult;
+      case "passed": return st==="passed";
+      case "archived": return st==="archived";
+      case "accent": case "versa": case "moto": return c.vehicle===S.cfilter && st!=="archived";
+      default: return true;
+    }
+  }).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+}
+function vClients(){
+  const list = filteredClients();
+  return `<div class="row between page-head"><div><h1>Clients</h1><div class="muted" style="margin-top:8px">${S.clients.length} total</div></div><button class="btn primary" data-act="newClient">${ic("plus")} New client</button></div>
+   <div class="row"><label class="search"><span class="sr" hidden>Search</span>${ic("search")}<input type="search" id="cq" placeholder="Search name, phone or ID number" value="${esc(S.q)}" data-in="q"></label></div>
+   <div class="chips">${CFILTERS.map(([v,l])=>`<button class="chip${S.cfilter===v?" on":""}" data-act="cfilterSet" data-v="${v}">${l}</button>`).join("")}</div>
+   ${loadingOr(()=> list.length?`<div class="list" id="clist">${list.map(clientRow).join("")}</div>`:`<div class="empty">${S.clients.length?"No clients match this filter.":"No clients yet. Add one and pick their package."}</div>`)}`;
+}
+
+function vClient(){
+  const c = client(S.clientId);
+  if(!c) return `<button class="btn ghost sm" data-act="nav" data-v="clients">${ic("left")} Clients</button><div class="empty">${S.ready.clients?"This client was deleted.":"Loading…"}</div>`;
+  const t=totals(c); const pct=c.lessonsIncluded?Math.min(100,Math.round(num(c.lessonsTaken)/num(c.lessonsIncluded)*100)):0;
+  const lessons = S.lessons.filter(l=>lessonCids(l).includes(c.id)).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const pays = S.payments.filter(p=>p.clientId===c.id).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const docs = S.invoices.filter(i=>i.clientId===c.id).sort((a,b)=>(b.date+b.createdAt).localeCompare(a.date+a.createdAt));
+  const st=c.status||"active";
+  return `<div class="row between"><button class="btn ghost sm" data-act="nav" data-v="clients">${ic("left")} Clients</button>
+    <div class="row" style="gap:8px"><button class="btn sm" data-act="editClient" data-id="${esc(c.id)}">${ic("edit")} Edit</button></div></div>
+   <div class="page-head" style="display:flex;flex-direction:column;gap:14px">
+   <div class="row" style="gap:18px;align-items:center">
+     <button data-act="clientPhoto" data-id="${esc(c.id)}" style="border:0;background:none;padding:0;position:relative" title="Upload photo" aria-label="Upload client photo">${avatar(c,"lg")}</button>
+     <div style="min-width:0;flex:1"><h1 style="font-size:clamp(30px,5vw,44px)">${esc(c.name)}</h1>
+       <div class="muted" style="margin-top:6px">${esc(c.phone||"No phone")}${c.idNumber?" · ID "+esc(c.idNumber):""}</div></div>
+   </div>
+   <div class="row"><span class="pill hot">${vehIcon(c.vehicle).replace("<svg",'<svg width="14" height="14"')} ${esc(VEH[c.vehicle]?.name||"")} · ${esc(VEH[c.vehicle]?.trans||"")}</span>
+     <span class="pill plain">${esc(pkgLabel(c))}</span><span class="pill plain">Instructor: ${esc(c.instructor||"—")}</span>
+     ${st==="passed"?`<span class="pill good">Passed</span>`:st==="archived"?`<span class="pill plain">Archived</span>`:""}</div>
+   </div>
+
+   <div class="card night road">
+     <div class="stat-split">
+       <div><div class="big num">${num(c.lessonsTaken)}<span style="font-size:18px;color:var(--night-muted)">/${num(c.lessonsIncluded)}</span></div><div class="muted small">Lessons taken</div></div>
+       <div><div class="big num" style="font-size:24px">${money0(t.paid)}</div><div class="muted small">Paid</div></div>
+       <div><div class="big orange num" style="font-size:24px">${money0(Math.max(0,t.balance))}</div><div class="muted small">${t.balance<-0.009?"Credit "+money0(-t.balance):"Left to pay"}</div></div>
+     </div>
+     <div style="margin-top:18px" class="bar"><i style="width:${pct}%"></i></div>
+     <div class="row between small" style="margin-top:12px"><span class="muted">Package total ${money(t.total)} · Theory attended: ${num(c.theoryTaken)}</span>
+       <span class="row" style="gap:6px"><button class="btn sm" data-act="lessonsAdj" data-id="${esc(c.id)}" data-v="-1" aria-label="Remove a lesson">−1</button>
+       <button class="btn sm primary" data-act="lessonsAdj" data-id="${esc(c.id)}" data-v="1">+1 lesson taken</button></span></div>
+   </div>
+
+   <div class="grid g4">
+     <button class="btn primary" data-act="payNew" data-id="${esc(c.id)}">${ic("coin")} Add payment</button>
+     <button class="btn" data-act="lessonNew" data-id="${esc(c.id)}">${ic("cal")} Schedule lesson</button>
+     <button class="btn" data-act="chargeNew" data-id="${esc(c.id)}">${ic("plus")} Extra charge</button>
+     <button class="btn" data-act="socialFor" data-id="${esc(c.id)}">${ic("camera")} Social post</button>
+   </div>
+
+   <div class="grid g2 stack">
+     <button class="toggle" data-act="toggleId" data-id="${esc(c.id)}"><span><b>ID printed</b><br><span class="small muted">${c.idPrinted?"Printed on "+esc(niceDate(c.idPrintedAt)):"Needed to request the exam date"}</span></span><span class="switch${c.idPrinted?" on":""}"></span></button>
+     <div class="toggle" style="flex-wrap:wrap"><span><b>Exam</b><br><span class="small muted">${c.examDate?esc(longDate(c.examDate)):"No date yet"}</span></span>
+       <span class="row" style="gap:8px"><input type="date" id="examDate" value="${esc(c.examDate||"")}" data-change="examDate" data-id="${esc(c.id)}" style="width:auto" aria-label="Exam date">
+       <select id="examRes" data-change="examResult" data-id="${esc(c.id)}" style="width:auto" aria-label="Exam result">${opt("","Result…",c.examResult)}${opt("passed","Passed",c.examResult)}${opt("failed","Failed",c.examResult)}</select></span></div>
+   </div>
+
+   <div class="section-head"><h2>Documents</h2><span class="muted small">Invoices & receipts, saved per client</span></div>
+   ${docs.length?`<div class="list">${docs.map(d=>`<div class="item doc"><div class="veh-ico">${ic(d.type==="receipt"?"receipt":"file")}</div>
+     <div class="grow"><span class="vlabel">${d.type==="receipt"?"Receipt (kwitansi)":"Invoice (factuur)"}</span><b class="num">${esc(d.number)}${d.void?" · VOID":""}</b><span class="small muted">${esc(niceDate(d.date))}${d.type==="receipt"?" · "+esc(d.method||""):" · "+esc((d.lines||[]).map(l=>l.desc).join(", "))}</span></div>
+     <div class="end num" style="font-weight:700;margin-right:6px${d.void?";text-decoration:line-through;opacity:.5":""}">${money(d.amount)}</div>
+     <button class="icon-btn" data-act="dlDoc" data-id="${esc(d.id)}" title="Download PDF" aria-label="Download PDF">${ic("down")}</button>
+     ${d.type==="invoice"&&!d.void?`<button class="icon-btn" data-act="voidAsk" data-id="${esc(d.id)}" title="Void invoice" aria-label="Void invoice">${ic("x")}</button>`:""}</div>`).join("")}</div>`:`<div class="empty">No documents yet.</div>`}
+
+   <div class="grid g2 stack" style="align-items:start">
+    <div class="list"><div class="section-head"><h2>Payments</h2></div>
+     ${pays.length?pays.map(p=>`<div class="item"><div class="grow"><b class="num">${money(p.amount)}</b><span class="small muted">${esc(niceDate(p.date))} · ${esc(p.method||"")}${p.by?" · by "+esc(p.by):""}${p.note?" · "+esc(p.note):""}</span></div>
+       <button class="icon-btn" data-act="payDelAsk" data-id="${esc(p.id)}" aria-label="Delete payment">${ic("trash")}</button></div>`).join(""):`<div class="empty">No payments yet.</div>`}</div>
+    <div class="list"><div class="section-head"><h2>Lessons</h2></div>
+     ${lessons.length?lessons.slice(0,30).map(l=>`<div class="item"><div class="grow"><b>${esc(niceDate(l.date))} · ${esc(l.time||"")}</b><span class="small muted">${esc(l.instructor||"")} · ${esc(lessonVehShort(l))}${isTheory(l)&&lessonCids(l).length>1?" · group of "+lessonCids(l).length:""}</span></div>
+       <span class="pill ${l.status==="done"?"good":l.status==="noshow"?"bad":l.status==="cancelled"?"plain":"hot"}">${esc({done:"Done",noshow:"No-show",cancelled:"Cancelled"}[l.status]||"Planned")}</span>
+       <button class="icon-btn" data-act="lessonEdit" data-id="${esc(l.id)}" aria-label="Edit lesson">${ic("edit")}</button></div>`).join(""):`<div class="empty">No lessons scheduled.</div>`}</div>
+   </div>
+   ${c.notes?`<div class="card soft"><div class="eyebrow" style="margin-bottom:6px">Notes</div><div style="white-space:pre-wrap">${esc(c.notes)}</div></div>`:""}`;
+}
+
+function vSchedule(){
+  const d=S.day; const start=addDays(d, -((parseYmd(d).getDay()+6)%7));
+  const week=[...Array(7)].map((_,i)=>addDays(start,i));
+  const L = S.lessons.filter(l=>l.date===d && (S.dayInst==="all"||l.instructor===S.dayInst)).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+  const EX = S.clients.filter(c=>c.examDate===d && (S.dayInst==="all"||c.instructor===S.dayInst));
+  const active=L.filter(l=>l.status!=="cancelled");
+  const t=today(), tm=addDays(t,1);
+  const needRemind = S.lessons.filter(l=>l.status==="planned"&&!l.reminded&&(l.date===t||l.date===tm)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  return `<div class="row between page-head"><div><h1>Schedule</h1><div class="muted" style="margin-top:8px">${esc(longDate(d))}</div></div>
+    <button class="btn primary" data-act="lessonNew">${ic("plus")} New lesson</button></div>
+   <div class="row between">
+     <div class="row" style="gap:8px"><button class="icon-btn" data-act="dayShift" data-v="-7" aria-label="Previous week">${ic("left")}</button><button class="btn sm" data-act="dayToday">Today</button><button class="icon-btn" data-act="dayShift" data-v="7" aria-label="Next week">${ic("right")}</button>
+     <input type="date" id="dayPick" value="${esc(d)}" data-change="day" style="width:auto" aria-label="Pick a day"></div>
+     <div class="chips">${["all",...INSTRUCTORS].map(n=>`<button class="chip${S.dayInst===n?" on":""}" data-act="dayInst" data-v="${n}">${n==="all"?"Both instructors":n}</button>`).join("")}</div>
+   </div>
+   <div class="week">${week.map(w=>{ const n=S.lessons.filter(l=>l.date===w&&l.status!=="cancelled"&&(S.dayInst==="all"||l.instructor===S.dayInst)).length; const ne=S.clients.filter(c=>c.examDate===w&&(S.dayInst==="all"||c.instructor===S.dayInst)).length; const dd=parseYmd(w);
+     return `<button class="wday${w===d?" on":""}" data-act="daySet" data-v="${w}"><small>${DOW[dd.getDay()]}</small><b class="num">${dd.getDate()}</b><span class="cnt">${[n?n+" les":"",ne?ne+" exam":""].filter(Boolean).join(" · ")}</span></button>`;}).join("")}</div>
+   <div class="row">
+     <button class="btn sm" data-act="dayPng" ${active.length?"":"disabled"}>${ic("down")} Day image (WhatsApp)</button>
+     <button class="btn sm" data-act="dayPdf" ${active.length?"":"disabled"}>${ic("file")} Day PDF</button>
+     <button class="btn sm" data-act="dayCopy" ${active.length?"":"disabled"}>${ic("copy")} Copy as text</button>
+     <span class="small muted">Images and text show first names only, so clients don't see each other's details.</span>
+   </div>
+   ${EX.length?`<div class="list">${EX.map(c=>`<button class="item exam" data-act="openClient" data-id="${esc(c.id)}"><div class="time">${ic("star",'width="20" height="20"')}</div><div class="grow"><span class="vlabel">Eksamen · ${esc(VEH[c.vehicle]?.name||"")} · ${esc(c.instructor||"—")}</span><b>${esc(c.name)}</b><span class="small muted">Exam day${c.examResult?" · "+(c.examResult==="passed"?"Passed":"Failed"):""}</span></div>${ic("right",'width="18" height="18"')}</button>`).join("")}</div>`:""}
+   ${loadingOr(()=> L.length?`<div class="list">${L.map(lessonRow).join("")}</div>`:`<div class="empty">No lessons planned for ${esc(relDay(d).toLowerCase()==="today"?"today":niceDate(d))}. Press <b>New lesson</b> to put a client on the schedule.</div>`)}
+   ${needRemind.length?`<div class="section-head"><h2>Reminders to send</h2><span class="muted small">Today & tomorrow</span></div>
+   <div class="list">${needRemind.flatMap(l=>lessonClients(l).map(c=>`<div class="item"><div class="grow"><span class="vlabel">${esc(relDay(l.date))} · ${esc(l.time)} · ${esc(lessonVehShort(l))}</span><b>${esc(c.name)}</b><span class="small muted">${esc(c.phone||"No phone number")}</span></div>${waBtn(l,c)}<button class="btn sm ghost" data-act="markReminded" data-id="${esc(l.id)}">Mark sent</button></div>`)).join("")}</div>`:""}`;
+}
+
+/* finance */
+function monthStats(y,m){
+  const ym=y+"-"+pad(m+1); const c=cfg();
+  const pays=S.payments.filter(p=>(p.date||"").startsWith(ym));
+  const invs=S.invoices.filter(i=>i.type==="invoice"&&!i.void&&(i.date||"").startsWith(ym));
+  const exps=S.expenses.filter(e=>(e.date||"").startsWith(ym));
+  const received=pays.reduce((a,p)=>a+num(p.amount),0), invoiced=invs.reduce((a,i)=>a+num(i.amount),0), expenses=exps.reduce((a,e)=>a+num(e.amount),0);
+  const omzet = c.obBasis==="invoice"?invoiced:received; const r=num(c.obRate);
+  const ob = r>0? omzet*r/(100+r):0;
+  return {ym,pays,invs,exps,received,invoiced,expenses,omzet,ob,net:omzet-ob-expenses};
+}
+function niceMax(v){ if(v<=0) return 1000; const p=10**Math.floor(Math.log10(v)); const n=v/p; return (n<=1?1:n<=2?2:n<=5?5:10)*p; }
+function vFinance(){
+  const y=S.year, c=cfg(); const ms=[...Array(12)].map((_,m)=>monthStats(y,m));
+  const sel=ms[S.month]; const yr=ms.reduce((a,s)=>({omzet:a.omzet+s.omzet,ob:a.ob+s.ob,exp:a.exp+s.expenses,rec:a.rec+s.received}),{omzet:0,ob:0,exp:0,rec:0});
+  const max=niceMax(Math.max(...ms.map(s=>Math.max(s.omzet,s.expenses))));
+  const W=760,H=240,pl=56,pb=26,pt=10,cw=(W-pl-8)/12,bw=Math.min(18,cw/3);
+  const yv=v=>pt+(H-pt-pb)*(1-v/max);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Revenue and expenses per month, ${y}"><defs><linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18B4F5"/><stop offset="1" stop-color="#2F74D0"/></linearGradient></defs>`;
+  for(let k=0;k<=4;k++){ const v=max*k/4, yy=yv(v); svg+=`<line class="gl" x1="${pl}" x2="${W-4}" y1="${yy}" y2="${yy}"/><text x="${pl-8}" y="${yy+4}" text-anchor="end">${v>=1000?(v/1000).toLocaleString("en-US",{maximumFractionDigits:1})+"k":Math.round(v)}</text>`; }
+  ms.forEach((s,m)=>{ const x=pl+m*cw; svg+=`<rect class="${m===S.month?"hitsel":"hit"}" x="${x+2}" y="${pt}" width="${cw-4}" height="${H-pt-pb}" rx="8" data-act="monthSet" data-v="${m}"><title>${MONTHS_L[m]}: omzet ${money0(s.omzet)}, expenses ${money0(s.expenses)}</title></rect>`;
+    const hr=(H-pt-pb)*s.omzet/max, he=(H-pt-pb)*s.expenses/max;
+    if(hr>0) svg+=`<rect class="rev" x="${x+cw/2-bw-1}" y="${yv(s.omzet)}" width="${bw}" height="${hr}" rx="3" pointer-events="none"/>`;
+    if(he>0) svg+=`<rect class="exp" x="${x+cw/2+1}" y="${yv(s.expenses)}" width="${bw}" height="${he}" rx="3" pointer-events="none"/>`;
+    svg+=`<text x="${x+cw/2}" y="${H-8}" text-anchor="middle" ${m===S.month?'style="fill:var(--ink);font-weight:600"':""}>${MONTHS[m]}</text>`; });
+  svg+=`</svg>`;
+  const due = new Date(y, S.month+1, 15);
+  const byCat={}; S.expenses.filter(e=>(e.date||"").startsWith(String(y))).forEach(e=>{ byCat[e.category||"Other"]=(byCat[e.category||"Other"]||0)+num(e.amount); });
+  const owing = S.clients.map(c=>({c,t:totals(c)})).filter(o=>o.t.balance>0.009).sort((a,b)=>b.t.balance-a.t.balance);
+  return `<div class="row between page-head"><div><h1>Finance</h1><div class="muted" style="margin-top:8px">Revenue, expenses and omzetbelasting</div></div>
+    <div class="row" style="gap:8px"><button class="icon-btn" data-act="yearShift" data-v="-1" aria-label="Previous year">${ic("left")}</button><b class="num" style="font-family:var(--f-display);font-size:20px">${y}</b><button class="icon-btn" data-act="yearShift" data-v="1" aria-label="Next year">${ic("right")}</button></div></div>
+   <div class="grid g4">
+     <div class="card hot"><div class="eyebrow">Omzet ${y}</div><div class="big num" style="margin-top:8px;font-size:24px">${money0(yr.omzet)}</div></div>
+     <div class="card"><div class="eyebrow">OB ${num(c.obRate)}% in omzet</div><div class="big num" style="margin-top:8px;font-size:24px">${money0(yr.ob)}</div></div>
+     <div class="card"><div class="eyebrow">Expenses</div><div class="big num" style="margin-top:8px;font-size:24px">${money0(yr.exp)}</div></div>
+     <div class="card night"><div class="eyebrow">Result before income tax</div><div class="big orange num" style="margin-top:8px;font-size:24px">${money0(yr.omzet-yr.ob-yr.exp)}</div></div>
+   </div>
+   <div class="card chart"><div class="row between" style="margin-bottom:10px"><h3>Per month</h3><div class="legend"><span><i style="background:var(--accent)"></i>Omzet</span><span><i style="background:rgba(12,18,32,.22)"></i>Expenses</span></div></div>${svg}<div class="small muted" style="margin-top:6px">Click a month for its OB return.</div></div>
+   <div class="grid g2 stack" style="align-items:start">
+     <div class="card" style="display:flex;flex-direction:column;gap:14px">
+       <div class="row between"><div><div class="eyebrow">Aangifte omzetbelasting</div><h2 style="margin-top:4px">${MONTHS_L[S.month]} ${y}</h2></div><span class="pill warn">Due ${due.getDate()} ${MONTHS[due.getMonth()]} ${due.getFullYear()}</span></div>
+       <dl class="kv num">
+         <dt>Payments received</dt><dd>${money(sel.received)}</dd>
+         <dt>Invoiced this month</dt><dd>${money(sel.invoiced)}</dd>
+         <dt>Omzet (${c.obBasis==="invoice"?"invoice basis":"cash basis"}, incl. OB)</dt><dd>${money(sel.omzet)}</dd>
+         <dt>Omzet excl. OB</dt><dd>${money(sel.omzet-sel.ob)}</dd>
+         <dt style="color:var(--ink);font-weight:600">OB to pay (${num(c.obRate)}%)</dt><dd style="color:var(--accent);font-size:17px">${money(sel.ob)}</dd>
+         <dt>Expenses</dt><dd>${money(sel.expenses)}</dd>
+       </dl>
+       <div class="row"><button class="btn sm" data-act="exportMonth">${ic("down")} Month CSV</button><button class="btn sm" data-act="exportMonthPdf">${ic("file")} Month PDF</button></div>
+     </div>
+     <div class="card" style="display:flex;flex-direction:column;gap:12px">
+       <div><div class="eyebrow">Inkomstenbelasting ${y}</div><h2 style="margin-top:4px">Expenses by category</h2></div>
+       ${Object.keys(byCat).length?`<dl class="kv num">${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${money(v)}</dd>`).join("")}<dt style="color:var(--ink);font-weight:600">Total</dt><dd>${money(yr.exp)}</dd></dl>`:`<div class="empty">No expenses in ${y} yet.</div>`}
+       <div class="row"><button class="btn sm dark" data-act="exportYear">${ic("down")} Year report CSV</button><button class="btn sm" data-act="exportYearPdf">${ic("file")} Year PDF</button></div>
+     </div>
+   </div>
+   <div class="section-head"><h2>Still to collect</h2><span class="muted small num">${money(owing.reduce((a,o)=>a+o.t.balance,0))}</span></div>
+   ${owing.length?`<div class="table-wrap"><table><thead><tr><th>Client</th><th>Package</th><th class="r">Total</th><th class="r">Paid</th><th class="r">Open</th></tr></thead><tbody>
+     ${owing.map(o=>`<tr class="click" data-act="openClient" data-id="${esc(o.c.id)}"><td>${esc(o.c.name)}</td><td>${esc(VEH[o.c.vehicle]?.short||"")} · ${esc(pkgLabel(o.c))}</td><td class="r num">${money(o.t.total)}</td><td class="r num">${money(o.t.paid)}</td><td class="r num" style="font-weight:700">${money(o.t.balance)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Everyone is paid up.</div>`}
+   <div class="small muted">OB is calculated on prices that already include omzetbelasting. Check the rate and basis in Settings with your accountant.</div>`;
+}
+
+function vExpenses(){
+  const ym=S.expMonth; const list=S.expenses.filter(e=>(e.date||"").startsWith(ym)).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const total=list.reduce((a,e)=>a+num(e.amount),0); const [y,m]=ym.split("-").map(Number);
+  return `<div class="row between page-head"><div><h1>Expenses</h1><div class="muted" style="margin-top:8px">Snap a receipt and it's filed for your taxes</div></div>
+    <button class="btn primary" data-act="expNew" ${assets?"":"disabled"}>${ic("camera")} Add receipt</button></div>
+   ${!assets&&db?`<div class="banner">Uploading photos needs Editor access to this page. You can still add expenses without a photo.</div>`:""}
+   <div class="row between"><div class="row" style="gap:8px"><button class="icon-btn" data-act="expMonth" data-v="-1" aria-label="Previous month">${ic("left")}</button>
+     <b style="font-family:var(--f-display);font-size:20px;min-width:150px;text-align:center">${MONTHS_L[m-1]} ${y}</b><button class="icon-btn" data-act="expMonth" data-v="1" aria-label="Next month">${ic("right")}</button></div>
+     <div class="row"><span class="muted">Total</span><b class="num" style="font-size:20px">${money(total)}</b>${!assets?`<button class="btn sm" data-act="expNewNoPhoto">${ic("plus")} Without photo</button>`:""}</div></div>
+   ${loadingOr(()=> list.length?`<div class="thumbs">${list.map(e=>`<button class="thumb" data-act="expView" data-id="${esc(e.id)}"><div class="ph">${e.fileId?(String(e.fileType||"").includes("pdf")?ic("file",'width="36" height="36"'):`<img src="${blobUrl(esc(e.fileId))}" alt="" loading="lazy">`):ic("receipt",'width="36" height="36"')}</div>
+      <div class="meta"><b class="num">${money(e.amount)}</b><span class="muted">${esc(e.vendor||e.category||"")}</span><span class="muted small">${esc(niceDate(e.date))}</span></div></button>`).join("")}</div>`
+     :`<div class="empty">No expenses for ${MONTHS_L[m-1]}. Add fuel, maintenance, insurance, exam fees and more.</div>`)}`;
+}
+
+/* social */
+function vSocial(){
+  const c=client(S.socialClient); const cs=[...S.clients].filter(x=>S.socialMode==="all"||(x.status==="passed"||x.examResult==="passed")).sort((a,b)=>(a.posted?1:0)-(b.posted?1:0)||(a.name||"").localeCompare(b.name||""));
+  const k=cfg();
+  const cap = c? captionFor(c):"";
+  return `<div class="page-head"><h1>Social post</h1><div class="muted" style="margin-top:8px">Client photo in your template, caption ready for @trusty_autorijschool</div></div>
+   <div class="grid g2 stack" style="align-items:start">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="field"><label for="socC">Client</label>
+        <div class="chips">${[["passed","Passed"],["all","All clients"]].map(([v,l])=>`<button class="chip${S.socialMode===v?" on":""}" data-act="socialMode" data-v="${v}">${l}</button>`).join("")}</div>
+        <select id="socC" data-change="socialClient">${opt("","Choose a client…",S.socialClient||"")}${cs.map(x=>opt(x.id,x.name+(x.posted?"  ✓ posted":""),S.socialClient||"")).join("")}</select></div>
+      ${c?`<div class="row"><button class="btn primary" data-act="socialPhoto" ${assets?"":"disabled"}>${ic("up")} ${S.socialPhoto?"Change photo":"Upload photo"}</button>
+         ${c.photoId&&S.socialPhoto!==c.photoId?`<button class="btn" data-act="socialUseSaved">Use saved photo</button>`:""}</div>
+       <div class="field"><label for="socZ">Zoom</label><input type="range" id="socZ" min="1" max="3" step="0.01" value="${S.socialZoom}" data-in="socialZoom"></div>
+       <div class="grid g2"><div class="field"><label for="socX">Left / right</label><input type="range" id="socX" min="-1" max="1" step="0.01" value="${S.socialX}" data-in="socialX"></div>
+       <div class="field"><label for="socY">Up / down</label><input type="range" id="socY" min="-1" max="1" step="0.01" value="${S.socialY}" data-in="socialY"></div></div>
+       <div class="field"><label for="socCap">Caption</label><textarea id="socCap" rows="6">${esc(cap)}</textarea><span class="hint">From your preset in Settings. Edit here for this post only.</span></div>
+       <div class="row"><button class="btn dark" data-act="socialDl" ${S.socialPhoto?"":"disabled"}>${ic("down")} Download image</button><button class="btn" data-act="socialCopy">${ic("copy")} Copy caption</button></div>
+       <div class="row"><a class="btn sm" href="https://www.instagram.com/trusty_autorijschool/" target="_blank" rel="noopener">${ic("ext")} Instagram</a><a class="btn sm" href="https://www.facebook.com/" target="_blank" rel="noopener">${ic("ext")} Facebook</a>
+         <button class="btn sm${c.posted?"":" primary"}" data-act="socialPosted">${c.posted?ic("check")+" Posted "+esc(niceDate(c.postedAt)):"Mark as posted"}</button></div>`
+      :`<div class="empty">Pick a client to build their post.</div>`}
+      <div class="card soft small"><b>Template:</b> ${k.templateId?"your uploaded Canva template is used.":"built-in template. Export your Canva design as a PNG with a transparent photo area and upload it in Settings to use it here."}</div>
+    </div>
+    <div><canvas class="preview" id="socCanvas" width="1080" height="1350" aria-label="Post preview"></canvas></div>
+   </div>`;
+}
+function captionFor(c){ return fill(cfg().caption,{name:c.name, first:firstName(c.name), license:VEH[c.vehicle]?.lic||"B", vehicle:VEH[c.vehicle]?.name||"", transmission:VEH[c.vehicle]?.trans||"", instructor:c.instructor||""}); }
+let socialImgCache={};
+async function getImg(id){ if(!id) return null; if(socialImgCache[id]) return socialImgCache[id]; try{ const i=await loadImg(blobUrl(id)); socialImgCache[id]=i; return i; }catch(e){ return null; } }
+async function drawSocial(){
+  const cv=$("#socCanvas"); if(!cv) return; const g=cv.getContext("2d"); const W=1080,H=1350; const k=cfg(); const c=client(S.socialClient);
+  try{ await document.fonts.load('800 80px "Nunito"'); }catch(e){}
+  const photo=await getImg(S.socialPhoto); const tpl=await getImg(k.templateId);
+  if(!$("#socCanvas")) return;
+  g.clearRect(0,0,W,H);
+  const box = tpl? (k.photoBox||{x:0,y:0,w:W,h:H}) : {x:0,y:0,w:W,h:H};
+  g.fillStyle="#0B2A4A"; g.fillRect(0,0,W,H);
+  if(photo){
+    const s=Math.max(box.w/photo.naturalWidth, box.h/photo.naturalHeight)*S.socialZoom;
+    const dw=photo.naturalWidth*s, dh=photo.naturalHeight*s;
+    const dx=box.x+(box.w-dw)/2 + S.socialX*(dw-box.w)/2, dy=box.y+(box.h-dh)/2 + S.socialY*(dh-box.h)/2;
+    g.save(); g.beginPath(); g.rect(box.x,box.y,box.w,box.h); g.clip(); g.drawImage(photo,dx,dy,dw,dh); g.restore();
+  } else {
+    g.fillStyle="rgba(255,255,255,.5)"; g.font='600 40px "Nunito", sans-serif'; g.textAlign="center"; g.fillText("Upload a photo", W/2, H/2-120);
+  }
+  if(tpl){ g.drawImage(tpl,0,0,W,H); return; }
+  // built-in template (brand blue, matches the package posters)
+  const gr=g.createLinearGradient(0,H*0.5,0,H); gr.addColorStop(0,"rgba(5,20,50,0)"); gr.addColorStop(1,"rgba(5,20,50,.92)"); g.fillStyle=gr; g.fillRect(0,0,W,H);
+  g.textAlign="left";
+  if(logoImg){ g.fillStyle="#fff"; roundRect(g,48,48,300,226,34); g.fill(); g.drawImage(logoImg,68,68,260,182); }
+  g.fillStyle="#1B1C1F"; g.fillRect(0,H-26,W,26); g.fillStyle="#FFD900"; for(let x=10;x<W;x+=64) g.fillRect(x,H-15,36,5);
+  g.fillStyle="#FFD900"; g.font='800 150px "Nunito", sans-serif'; g.fillText("PABIEN!",60,H-308);
+  g.fillStyle="#fff"; g.font='800 76px "Nunito", sans-serif'; fitText(g, c?c.name:"Client name", 60, H-208, W-120, 76);
+  g.font='600 40px "Nunito", sans-serif'; g.fillStyle="rgba(255,255,255,.85)";
+  g.fillText(c?`Rijbewijs ${VEH[c.vehicle]?.lic||"B"} · ${VEH[c.vehicle]?.trans||""}`:"Rijbewijs B",60,H-138);
+  g.fillStyle="#2F74D0"; roundRect(g,60,H-104,420,56,28); g.fill(); g.fillStyle="#fff"; g.font='700 30px "Nunito", sans-serif'; g.fillText("@trusty_autorijschool",84,H-66);
+}
+function roundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+function fitText(g,t,x,y,max,size){ let s=size; const fam=g.font.replace(/\d+px/,"{}"); while(s>30){ g.font=fam.replace("{}",s+"px"); if(g.measureText(t).width<=max) break; s-=4; } g.fillText(t,x,y); }
+
+function vSettings(){
+  const k=cfg();
+  return `<div class="page-head"><h1>Settings</h1><div class="muted" style="margin-top:8px">Shared by both instructors</div></div>
+  <form id="setForm" class="grid" style="gap:22px" onsubmit="return false">
+   <div class="card grid" style="gap:14px"><h3>Business details (shown on invoices)</h3>
+    <div class="grid g2 stack">
+     <div class="field"><label for="s_bus">Business name</label><input type="text" id="s_bus" name="business" value="${esc(k.business)}"></div>
+     <div class="field"><label for="s_ph">Phone</label><input type="tel" id="s_ph" name="phone" value="${esc(k.phone)}"></div>
+     <div class="field"><label for="s_ad">Address</label><input type="text" id="s_ad" name="address" value="${esc(k.address)}"></div>
+     <div class="field"><label for="s_em">Email</label><input type="text" id="s_em" name="email" value="${esc(k.email)}"></div>
+     <div class="field"><label for="s_kvk">KvK number</label><input type="text" id="s_kvk" name="kvk" value="${esc(k.kvk)}"></div>
+     <div class="field"><label for="s_crib">CRIB number</label><input type="text" id="s_crib" name="crib" value="${esc(k.crib)}"></div>
+     <div class="field"><label for="s_bank">Bank account (for transfers)</label><input type="text" id="s_bank" name="bank" value="${esc(k.bank)}"></div>
+     <div class="field"><label for="s_pre">Invoice prefix</label><input type="text" id="s_pre" name="invoicePrefix" value="${esc(k.invoicePrefix)}"><span class="hint">Numbers look like ${esc(k.invoicePrefix)}-F${new Date().getFullYear()}-001</span></div>
+    </div></div>
+   <div class="card grid" style="gap:14px"><h3>Omzetbelasting</h3>
+    <div class="grid g2 stack">
+     <div class="field"><label for="s_ob">OB rate (%)</label><input type="number" id="s_ob" name="obRate" step="0.1" min="0" value="${esc(k.obRate)}"><span class="hint">Prices are treated as including OB. Set 0 to hide OB.</span></div>
+     <div class="field"><label for="s_basis">Count omzet when</label><select id="s_basis" name="obBasis">${opt("cash","Payment is received (cash basis)",k.obBasis)}${opt("invoice","Invoice is issued (invoice basis)",k.obBasis)}</select></div>
+    </div></div>
+   <div class="card grid" style="gap:14px"><h3>Package prices (XCG)</h3>
+    <div class="table-wrap"><table><thead><tr><th>Vehicle</th>${PKG_LESSONS.map((n,i)=>`<th>Pakete ${i+1} · ${n}x</th>`).join("")}</tr></thead><tbody>
+    ${Object.keys(VEH).map(v=>`<tr><td><b>${esc(VEH[v].name)}</b><div class="small muted">${esc(VEH[v].trans)} · ${esc(VEH[v].lic)}</div></td>${k.prices[v].map((p,i)=>`<td><input type="number" id="p_${v}_${i}" name="p_${v}_${i}" value="${esc(p)}" style="width:110px" aria-label="${esc(VEH[v].name)} Pakete ${i+1}"></td>`).join("")}</tr>`).join("")}
+    </tbody></table></div></div>
+   <div class="card grid" style="gap:14px"><h3>Messages</h3>
+    <div class="field"><label for="s_rem">WhatsApp lesson reminder</label><textarea id="s_rem" name="reminder">${esc(k.reminder)}</textarea><span class="hint">Placeholders: {name} {date} {time} {instructor} {vehicle}</span></div>
+    <div class="field"><label for="s_cap">Social media caption</label><textarea id="s_cap" name="caption" rows="6">${esc(k.caption)}</textarea><span class="hint">Placeholders: {name} {first} {license} {vehicle} {transmission} {instructor}</span></div>
+   </div>
+   <div class="row"><button class="btn primary" data-act="saveSettings">${ic("check")} Save settings</button></div>
+  </form>
+  <div class="card grid" style="gap:14px"><h3>Social post template</h3>
+    <div class="small muted">In Canva: open your template, make the photo area transparent (delete the photo), then Share → Download → PNG with <b>transparent background</b>, size 1080 × 1350. Upload it here and every client photo is placed behind it.</div>
+    <div class="row"><button class="btn" data-act="tplUpload" ${assets?"":"disabled"}>${ic("up")} ${k.templateId?"Replace template":"Upload template PNG"}</button>${k.templateId?`<button class="btn danger" data-act="tplRemove">Use built-in template</button>`:""}</div>
+    ${k.templateId?`<div class="grid g4">${["x","y","w","h"].map(f=>`<div class="field"><label for="pb_${f}">Photo area ${f.toUpperCase()}</label><input type="number" id="pb_${f}" value="${esc((k.photoBox||{})[f]??"")}" data-pb="${f}"></div>`).join("")}</div><div class="hint small muted">Pixels on the 1080 × 1350 canvas where the photo should sit. Default fills the whole post.</div><div><button class="btn sm" data-act="savePb">Save photo area</button></div>`:""}
+  </div>`;
+}
+
+/* ───────────────── modals: client wizard ───────────────── */
+let W={};
+function newClient(){ W={step:1, data:{instructor:S.me||INSTRUCTORS[0]}}; wizard(); }
+function wizard(){
+  const d=W.data, k=cfg();
+  const steps=`<div class="steps">${[1,2,3].map(i=>`<i class="${W.step>=i?"on":""}"></i>`).join("")}</div>`;
+  if(W.step===1){
+    openModal(`${head("New client","Step 1 of 3 · Details")}${steps}
+     <form id="wf" class="grid" style="gap:14px" onsubmit="return false">
+      <div class="field"><label for="w_name">Full name</label><input type="text" id="w_name" name="name" value="${esc(d.name)}" required autocomplete="off"></div>
+      <div class="grid g2 stack"><div class="field"><label for="w_ph">Phone (WhatsApp)</label><input type="tel" id="w_ph" name="phone" value="${esc(d.phone)}" placeholder="5xx xxxx"></div>
+      <div class="field"><label for="w_id">ID number (sédula)</label><input type="text" id="w_id" name="idNumber" value="${esc(d.idNumber)}"></div>
+      <div class="field"><label for="w_dob">Date of birth</label><input type="date" id="w_dob" name="dob" value="${esc(d.dob)}"></div>
+      <div class="field"><label for="w_ad">Address</label><input type="text" id="w_ad" name="address" value="${esc(d.address)}"></div></div>
+      <div class="field"><label for="w_no">Notes</label><textarea id="w_no" name="notes" rows="2">${esc(d.notes)}</textarea></div>
+      <div class="row between"><span></span><button class="btn primary" data-act="wizNext">Choose vehicle ${ic("right")}</button></div></form>`);
+  } else if(W.step===2){
+    openModal(`${head("Vehicle","Step 2 of 3 · Which vehicle will "+esc(firstName(d.name))+" learn on?")}${steps}
+     <div class="grid g3 stack">${Object.entries(VEH).map(([v,x])=>`<button class="pick${d.vehicle===v?" on":""}" data-act="wizVeh" data-v="${v}"><div class="veh-ico">${vehIcon(v)}</div><b style="font-size:16px">${esc(x.name)}</b><span class="muted small">${esc(x.trans)} · Rijbewijs ${esc(x.lic)}</span><span class="small">From <b>${money0(k.prices[v][0])}</b></span></button>`).join("")}</div>
+     <div><button class="btn ghost" data-act="wizBack">${ic("left")} Back</button></div>`);
+  } else if(W.step===3){
+    const v=d.vehicle;
+    openModal(`${head("Package","Step 3 of 3 · "+esc(VEH[v].name)+" ("+esc(VEH[v].trans)+")")}${steps}
+     <div class="grid g2 stack">${k.prices[v].map((p,i)=>`<button class="pick${d.pkg===i?" on":""}${i===2?" popular":""}" data-act="wizPkg" data-v="${i}">${i===2?`<span class="tag pill bad">Most popular</span>`:""}<span class="eyebrow">Pakete ${i+1}</span><span class="price num">${money0(p)}</span><span class="per num">${money(p/PKG_LESSONS[i])} per lesson</span><b>${PKG_LESSONS[i]}x les praktiko</b><ul>${INCLUDED.map(t=>`<li>✓ ${esc(t)}</li>`).join("")}</ul></button>`).join("")}</div>
+     <div><button class="btn ghost" data-act="wizBack">${ic("left")} Back</button></div>`, true);
+  } else if(W.step===4){
+    const price=k.prices[d.vehicle][d.pkg];
+    openModal(`${head(esc(d.name), "Pakete "+(d.pkg+1)+" · "+PKG_LESSONS[d.pkg]+" lessons · "+money(price))}
+     <form id="wf" class="grid" style="gap:14px" onsubmit="return false">
+      <div class="grid g2 stack">
+       <div class="field"><label for="w_taken">Lessons already taken</label><input type="number" id="w_taken" name="taken" min="0" max="${PKG_LESSONS[d.pkg]+20}" value="${esc(d.taken??0)}"></div>
+       <div class="field"><label for="w_paid">Amount paid so far (XCG)</label><input type="number" id="w_paid" name="paid" min="0" step="0.01" value="${esc(d.paid??"")}" placeholder="0.00" data-in="wizPaid"></div>
+       <div class="field"><label for="w_meth">Payment method</label><select id="w_meth" name="method">${METHODS.map(m=>opt(m,m,d.method||"Cash")).join("")}</select></div>
+       <div class="field"><label for="w_date">Date</label><input type="date" id="w_date" name="date" value="${esc(d.date||today())}"></div>
+       <div class="field"><label for="w_inst">Instructor</label><select id="w_inst" name="instructor">${INSTRUCTORS.map(n=>opt(n,n,d.instructor)).join("")}</select></div>
+       <div class="field"><label for="w_disc">Discount (optional, XCG)</label><input type="number" id="w_disc" name="discount" min="0" step="0.01" value="${esc(d.discount??"")}" placeholder="0.00" data-in="wizPaid"></div>
+      </div>
+      <div class="wiz-sched"><div><b>Put them on the schedule</b><div class="small muted">Optional. Leave the date empty to schedule later.</div></div>
+       <div class="grid g3 stack">
+        <div class="field"><label for="w_fd">First lesson date</label><input type="date" id="w_fd" name="firstDate" value="${esc(d.firstDate||"")}"></div>
+        <div class="field"><label for="w_ft">Time</label><input type="time" id="w_ft" name="firstTime" step="900" value="${esc(d.firstTime||"08:00")}"></div>
+        <div class="field"><label for="w_ex">Exam date</label><input type="date" id="w_ex" name="examDate" value="${esc(d.examDate||"")}"></div>
+       </div></div>
+      <label class="toggle" for="w_idp"><span><b>ID already printed</b><br><span class="small muted">You can change this later</span></span><input type="checkbox" id="w_idp" name="idPrinted" ${d.idPrinted?"checked":""} style="width:22px;height:22px"></label>
+      <div class="card night"><div class="row between"><span class="muted">Left to pay</span><b class="big orange num" id="w_left" style="font-size:26px">${money(price)}</b></div></div>
+      <div class="small muted">Saving creates the invoice for the full package${""} and a receipt for the payment. Both are stored on the client.</div>
+      <div class="row between"><button class="btn ghost" data-act="wizBack">${ic("left")} Back</button><button class="btn primary" data-act="wizSave">${ic("check")} Save client</button></div></form>`);
+    wizLeft();
+  }
+}
+function wizLeft(){ const d=W.data, k=cfg(); const el=$("#w_left"); if(!el) return; const price=k.prices[d.vehicle][d.pkg]; el.textContent=money(price-num($("#w_disc").value)-num($("#w_paid").value)); }
+async function wizSave(btn){
+  const d=W.data, k=cfg(); Object.assign(d, formVals($("#wf")));
+  const price=num(k.prices[d.vehicle][d.pkg]), disc=num(d.discount), paid=num(d.paid);
+  btn.disabled=true;
+  const ok = await safe(async()=>{
+    const id=uid();
+    const c={id, name:d.name.trim(), phone:d.phone||"", idNumber:d.idNumber||"", dob:d.dob||"", address:d.address||"", notes:d.notes||"",
+      vehicle:d.vehicle, pkg:d.pkg, price:price-disc, lessonsIncluded:PKG_LESSONS[d.pkg], lessonsTaken:Math.max(0,Math.round(num(d.taken))),
+      instructor:d.instructor, idPrinted:!!d.idPrinted, idPrintedAt:d.idPrinted?today():"", examDate:d.examDate||"", examResult:"", photoId:null, posted:false,
+      status:"active", createdAt:new Date().toISOString(), createdBy:S.me||""};
+    await put("clients", id, c);
+    const lines=[{desc:`Pakete ${d.pkg+1} - ${PKG_LESSONS[d.pkg]}x les praktiko, ${VEH[d.vehicle].name} (${VEH[d.vehicle].trans})`, amount:price, sub:INCLUDED.join(" · ")}];
+    if(disc>0) lines.push({desc:"Korting / discount", amount:-disc});
+    await createInvoice(c, lines, d.date||today());
+    if(paid>0) await recordPayment(c, paid, d.date||today(), d.method||"Cash", "", {total:price-disc, paid:0});
+    if(d.firstDate){ const lid=uid(); await put("lessons",lid,{id:lid,type:"practical",clientId:id,clientIds:[id],date:d.firstDate,time:d.firstTime||"08:00",duration:60,instructor:d.instructor,vehicle:d.vehicle,note:"",status:"planned",reminded:false,createdAt:new Date().toISOString(),by:S.me||""}); }
+    S.clientId=id;
+  }, "Client saved with invoice");
+  if(ok){ closeModal(); go("client"); } else btn.disabled=false;
+}
+
+/* edit client */
+function editClient(id){
+  const c=client(id); if(!c) return;
+  openModal(`${head("Edit client")}
+   <form id="ef" class="grid" style="gap:14px" onsubmit="return false">
+    <div class="field"><label for="e_name">Full name</label><input type="text" id="e_name" name="name" value="${esc(c.name)}"></div>
+    <div class="grid g2 stack">
+     <div class="field"><label for="e_ph">Phone</label><input type="tel" id="e_ph" name="phone" value="${esc(c.phone)}"></div>
+     <div class="field"><label for="e_id">ID number</label><input type="text" id="e_id" name="idNumber" value="${esc(c.idNumber)}"></div>
+     <div class="field"><label for="e_dob">Date of birth</label><input type="date" id="e_dob" name="dob" value="${esc(c.dob)}"></div>
+     <div class="field"><label for="e_ad">Address</label><input type="text" id="e_ad" name="address" value="${esc(c.address)}"></div>
+     <div class="field"><label for="e_inst">Instructor</label><select id="e_inst" name="instructor">${INSTRUCTORS.map(n=>opt(n,n,c.instructor)).join("")}</select></div>
+     <div class="field"><label for="e_veh">Vehicle</label><select id="e_veh" name="vehicle">${Object.entries(VEH).map(([v,x])=>opt(v,x.name+" ("+x.trans+")",c.vehicle)).join("")}</select></div>
+     <div class="field"><label for="e_inc">Lessons in package</label><input type="number" id="e_inc" name="lessonsIncluded" min="0" value="${esc(c.lessonsIncluded)}"></div>
+     <div class="field"><label for="e_tak">Lessons taken</label><input type="number" id="e_tak" name="lessonsTaken" min="0" value="${esc(c.lessonsTaken)}"></div>
+     <div class="field"><label for="e_st">Status</label><select id="e_st" name="status">${opt("active","Active",c.status||"active")}${opt("passed","Passed exam",c.status)}${opt("archived","Archived",c.status)}</select></div>
+    </div>
+    <div class="field"><label for="e_no">Notes</label><textarea id="e_no" name="notes">${esc(c.notes)}</textarea></div>
+    <div id="delZone"><button class="btn danger sm" data-act="delClientAsk">${ic("trash")} Delete client</button></div>
+    <div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn primary" data-act="saveClient" data-id="${esc(c.id)}">${ic("check")} Save</button></div>
+   </form>`);
+}
+
+/* payment */
+function payNew(id){
+  const c=client(id); const t=totals(c);
+  openModal(`${head("Add payment", esc(c.name)+" · open balance "+money(Math.max(0,t.balance)))}
+   <form id="pf" class="grid" style="gap:14px" onsubmit="return false">
+    <div class="grid g2 stack">
+     <div class="field"><label for="p_am">Amount (XCG)</label><input type="number" id="p_am" name="amount" step="0.01" min="0.01" value="${t.balance>0?esc(t.balance.toFixed(2)):""}"></div>
+     <div class="field"><label for="p_d">Date</label><input type="date" id="p_d" name="date" value="${today()}"></div>
+     <div class="field"><label for="p_m">Method</label><select id="p_m" name="method">${METHODS.map(m=>opt(m,m,"Cash")).join("")}</select></div>
+     <div class="field"><label for="p_n">Note</label><input type="text" id="p_n" name="note" placeholder="Optional"></div>
+    </div>
+    <div class="small muted">A numbered receipt is created and saved on the client.</div>
+    <div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn primary" data-act="savePay" data-id="${esc(c.id)}">${ic("check")} Save payment</button></div>
+   </form>`);
+}
+function chargeNew(id){
+  const c=client(id);
+  openModal(`${head("Extra charge", "Creates a new invoice for "+esc(c.name))}
+   <form id="chf" class="grid" style="gap:14px" onsubmit="return false">
+    <div class="field"><label for="ch_d">Description</label><input type="text" id="ch_d" name="desc" value="Extra les praktiko"></div>
+    <div class="grid g3 stack">
+     <div class="field"><label for="ch_a">Amount (XCG)</label><input type="number" id="ch_a" name="amount" step="0.01" min="0"></div>
+     <div class="field"><label for="ch_l">Adds lessons</label><input type="number" id="ch_l" name="lessons" min="0" value="1"><span class="hint">0 for exam re-take etc.</span></div>
+     <div class="field"><label for="ch_dt">Date</label><input type="date" id="ch_dt" name="date" value="${today()}"></div>
+    </div>
+    <div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn primary" data-act="saveCharge" data-id="${esc(c.id)}">${ic("check")} Create invoice</button></div>
+   </form>`);
+}
+
+/* lesson */
+let LM={};
+function lessonModal(clientId, lessonId, draft){
+  LM={clientId, lessonId};
+  const l = lessonId? S.lessons.find(x=>x.id===lessonId):null;
+  const c = client(clientId) || (l && lessonClients(l)[0]);
+  const actives=[...S.clients].filter(x=>(x.status||"active")!=="archived").sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const base = l ? {...l, clientIds:lessonCids(l), type:l.type||"practical"} : {date:S.view==="schedule"?S.day:today(), time:"08:00", duration:60, instructor:c?.instructor||S.me||INSTRUCTORS[0], vehicle:c?.vehicle||"accent", clientIds:c?[c.id]:[], type:"practical", note:""};
+  const d = {...base, ...(draft||{})};
+  const theory = d.type==="theory";
+  const clientField = theory
+    ? `<div class="field"><label>Clients in this theory class <span class="hint" id="ckCount">${d.clientIds.length} selected</span></label><div class="checklist" id="ckList">${actives.length?actives.map(x=>`<label class="ck"><input type="checkbox" name="cid" value="${esc(x.id)}" ${d.clientIds.includes(x.id)?"checked":""}><span>${esc(x.name)}</span><small>${esc(VEH[x.vehicle]?.short||"")}</small></label>`).join(""):`<div class="muted small" style="padding:10px">No clients yet.</div>`}</div></div>`
+    : `<div class="field"><label for="l_c">Client</label><select id="l_c" name="clientId" data-change="lessonClient">${opt("","Choose client…",d.clientIds[0]||"")}${actives.map(x=>opt(x.id,x.name,d.clientIds[0]||"")).join("")}</select></div>`;
+  openModal(`${head(l?"Edit lesson":"Schedule lesson")}
+   <form id="lf" class="grid" style="gap:14px" onsubmit="return false">
+    <div class="field"><label>Lesson type</label><div class="type-pick" role="group" aria-label="Lesson type">
+      <button class="pick${!theory?" on":""}" data-act="lessonType" data-v="practical"><div class="veh-ico">${ic("car")}</div><b>Praktiko</b><span class="small muted">Driving lesson · counts toward the package</span></button>
+      <button class="pick${theory?" on":""}" data-act="lessonType" data-v="theory"><div class="veh-ico">${ic("file")}</div><b>Teoria</b><span class="small muted">Theory class · free, one or more clients</span></button>
+    </div><input type="hidden" name="type" value="${theory?"theory":"practical"}"></div>
+    ${clientField}
+    <div class="grid g3 stack">
+     <div class="field"><label for="l_d">Date</label><input type="date" id="l_d" name="date" value="${esc(d.date)}" data-change="lessonCheck"></div>
+     <div class="field"><label for="l_t">Time</label><input type="time" id="l_t" name="time" value="${esc(d.time)}" step="900" data-change="lessonCheck"></div>
+     <div class="field"><label for="l_du">Minutes</label><select id="l_du" name="duration" data-change="lessonCheck">${[45,60,90,120].map(m=>opt(m,m+" min",d.duration||60)).join("")}</select></div>
+     <div class="field"><label for="l_i">Instructor</label><select id="l_i" name="instructor" data-change="lessonCheck">${INSTRUCTORS.map(n=>opt(n,n,d.instructor)).join("")}</select></div>
+     ${theory?"":`<div class="field"><label for="l_v">Vehicle</label><select id="l_v" name="vehicle" data-change="lessonCheck">${Object.entries(VEH).map(([v,x])=>opt(v,x.name,d.vehicle)).join("")}</select></div>`}
+     ${l?`<div class="field"><label for="l_s">Status</label><select id="l_s" name="status">${opt("planned","Planned",d.status)}${opt("done","Done",d.status)}${opt("noshow","No-show",d.status)}${opt("cancelled","Cancelled",d.status)}</select></div>`:`<div class="field"><label for="l_rep">Repeat weekly</label><select id="l_rep" name="repeat">${[1,2,3,4,6,8].map(n=>opt(n,n===1?"Just once":n+" weeks",d.repeat||1)).join("")}</select></div>`}
+    </div>
+    <div class="field"><label for="l_n">${theory?"Location / topic":"Note / pickup location"}</label><input type="text" id="l_n" name="note" value="${esc(d.note)}"></div>
+    <div id="lconf"></div>
+    ${l?`<div id="delZone"><button class="btn danger sm" data-act="lessonDelAsk">${ic("trash")} Delete lesson</button></div>`:""}
+    <div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn primary" data-act="saveLesson" data-id="${esc(l?l.id:"")}">${ic("check")} Save</button></div>
+   </form>`);
+  lessonCheck();
+}
+function lessonDraft(){ const f=$("#lf"); const v=formVals(f); const ids=[...f.querySelectorAll("input[name=cid]:checked")].map(i=>i.value); const cids = v.type==="theory"? ids : (v.clientId?[v.clientId]:[]); return {...v, clientIds:cids}; }
+function lessonCheck(){
+  const f=$("#lf"); if(!f) return; const v=lessonDraft(); const id=$("[data-act=saveLesson]").dataset.id; const th=v.type==="theory";
+  const cc=$("#ckCount"); if(cc) cc.textContent=v.clientIds.length+" selected";
+  const toMin=t=>{const [h,m]=(t||"0:0").split(":").map(Number); return h*60+m;};
+  const s=toMin(v.time), e=s+num(v.duration);
+  const clash=S.lessons.filter(l=>l.id!==id && l.date===v.date && l.status!=="cancelled" && (l.instructor===v.instructor||(!th&&!isTheory(l)&&l.vehicle===v.vehicle)) && toMin(l.time)<e && toMin(l.time)+num(l.duration||60)>s);
+  $("#lconf").innerHTML = clash.length?`<div class="banner">Overlaps with ${clash.map(l=>esc(lessonWho(l)+" at "+l.time+" ("+(l.instructor===v.instructor?l.instructor:VEH[l.vehicle]?.name)+")")).join(", ")}.</div>`:"";
+}
+
+/* expense */
+let expDraft=null;
+async function expNew(withPhoto){
+  expDraft={fileId:null,fileType:"",preview:null};
+  if(withPhoto){
+    const f=await pickFile("image/*,application/pdf"); if(!f) return;
+    expDraft.preview = f.type.startsWith("image/")?URL.createObjectURL(f):null; expDraft.file=f; expDraft.fileType=f.type;
+  }
+  openModal(`${head("Add expense")}
+   ${expDraft.file?`<div class="row" style="gap:14px">${expDraft.preview?`<img src="${expDraft.preview}" alt="Receipt" style="width:120px;height:120px;object-fit:cover;border-radius:14px">`:`<div class="veh-ico">${ic("file")}</div>`}<div class="small muted">${esc(expDraft.file.name)}<br>Uploads when you save</div></div>`:""}
+   <form id="xf" class="grid" style="gap:14px" onsubmit="return false">
+    <div class="grid g2 stack">
+     <div class="field"><label for="x_a">Amount (XCG)</label><input type="number" id="x_a" name="amount" step="0.01" min="0"></div>
+     <div class="field"><label for="x_d">Date</label><input type="date" id="x_d" name="date" value="${today()}"></div>
+     <div class="field"><label for="x_c">Category</label><select id="x_c" name="category">${EXP_CATS.map(c=>opt(c,c,"Fuel")).join("")}</select></div>
+     <div class="field"><label for="x_v">Shop / vendor</label><input type="text" id="x_v" name="vendor"></div>
+     <div class="field"><label for="x_veh">Vehicle (optional)</label><select id="x_veh" name="vehicle">${opt("","—","")}${Object.entries(VEH).map(([v,x])=>opt(v,x.name,"")).join("")}</select></div>
+     <div class="field"><label for="x_p">Paid by</label><select id="x_p" name="paidBy">${opt("Business","Business account","")}${INSTRUCTORS.map(n=>opt(n,n,"")).join("")}</select></div>
+    </div>
+    <div class="field"><label for="x_n">Note</label><input type="text" id="x_n" name="note"></div>
+    <div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn primary" data-act="saveExp">${ic("check")} Save expense</button></div>
+   </form>`);
+}
+function expView(id){
+  const e=S.expenses.find(x=>x.id===id); if(!e) return;
+  openModal(`${head(money(e.amount), esc(e.category)+" · "+esc(niceDate(e.date)))}
+   ${e.fileId?(String(e.fileType).includes("pdf")?`<a class="btn" href="${blobUrl(esc(e.fileId))}" target="_blank" rel="noopener">${ic("file")} Open PDF receipt</a>`:`<img src="${blobUrl(esc(e.fileId))}" alt="Receipt" style="width:100%;max-height:60vh;object-fit:contain;border-radius:16px;background:var(--surface-2)">`):`<div class="empty">No photo attached</div>`}
+   <dl class="kv"><dt>Vendor</dt><dd>${esc(e.vendor||"—")}</dd><dt>Vehicle</dt><dd>${esc(VEH[e.vehicle]?.name||"—")}</dd><dt>Paid by</dt><dd>${esc(e.paidBy||"—")}</dd><dt>Note</dt><dd>${esc(e.note||"—")}</dd><dt>Added by</dt><dd>${esc(e.by||"—")}</dd></dl>
+   <div id="delZone" class="row between">${e.fileId?`<button class="btn sm" data-act="expDl" data-id="${esc(e.id)}">${ic("down")} Download receipt</button>`:"<span></span>"}<button class="btn danger sm" data-act="expDelAsk" data-id="${esc(e.id)}">${ic("trash")} Delete</button></div>`);
+}
+
+/* ───────────────── PDFs ───────────────── */
+function pdfBase(title){
+  const {jsPDF}=window.jspdf; const d=new jsPDF({unit:"mm",format:"a4"}); const k=cfg();
+  d.setFillColor(27,28,31); d.rect(0,0,210,7,"F"); d.setFillColor(255,217,0); for(let x=4;x<210;x+=12) d.rect(x,3.1,7,0.9,"F");
+  if(logoData){ try{ d.addImage(logoData,"PNG",18,12,34,23.8); }catch(e){} }
+  d.setFont("helvetica","bold"); d.setFontSize(11); d.setTextColor(17,20,24); d.text(pdfSafe(k.business||"Trusty Autorijschool"),18,logoData?42:24);
+  d.setFont("helvetica","normal"); d.setFontSize(9); d.setTextColor(102,112,125);
+  const info=[k.address,k.phone,k.email,k.kvk?"KvK "+k.kvk:"",k.crib?"CRIB "+k.crib:""].filter(Boolean);
+  info.forEach((t,i)=>d.text(pdfSafe(t),18,(logoData?47:30)+i*4.2));
+  d.setFont("helvetica","bold"); d.setFontSize(22); d.setTextColor(47,116,208); d.text(title,192,24,{align:"right"});
+  return d;
+}
+const pdfMoney = n => "XCG "+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const pdfSafe = s => String(s??"").replace(/[–—]/g,"-").replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[^\x20-\x7E -ÿ\n]/g,"");
+function docPdf(inv){
+  const k=cfg(); const isR=inv.type==="receipt"; const d=pdfBase(isR?"KWITANSI":"FACTUUR");
+  d.setFont("helvetica","normal"); d.setFontSize(10); d.setTextColor(22,19,15);
+  d.text(isR?"Receipt no.":"Invoice no.",130,36); d.text("Date",130,41.5); d.text("Instructor",130,47);
+  d.setFont("helvetica","bold"); d.text(pdfSafe(inv.number),192,36,{align:"right"}); d.text(pdfSafe(longDate(inv.date)),192,41.5,{align:"right"});
+  const cl=client(inv.clientId); d.text(pdfSafe(cl?.instructor||"-"),192,47,{align:"right"});
+  let y=72; d.setFontSize(8); d.setTextColor(150,140,130); d.text(isR?"RECEIVED FROM":"BILL TO",18,y);
+  d.setFontSize(12); d.setTextColor(22,19,15); d.text(pdfSafe(inv.clientName),18,y+6);
+  d.setFont("helvetica","normal"); d.setFontSize(9.5); d.setTextColor(90,84,78);
+  [inv.clientPhone, inv.clientIdNumber?"ID "+inv.clientIdNumber:"", inv.clientAddress].filter(Boolean).forEach((t,i)=>d.text(pdfSafe(t),18,y+11.5+i*4.6));
+  y=100; d.setFillColor(234,239,245); d.roundedRect(18,y,174,10,2,2,"F");
+  d.setFont("helvetica","bold"); d.setFontSize(8.5); d.setTextColor(110,104,98); d.text("DESCRIPTION",23,y+6.5); d.text("AMOUNT",187,y+6.5,{align:"right"});
+  y+=17; d.setTextColor(22,19,15);
+  const rows = isR? [{desc:`Payment (${inv.method||""})${inv.note?" - "+inv.note:""}`, amount:inv.amount, sub:"Towards "+(VEH[inv.vehicle]?.name||"")+" driving lessons package"}] : (inv.lines||[]);
+  rows.forEach(r=>{ d.setFont("helvetica","bold"); d.setFontSize(10.5); const lines=d.splitTextToSize(pdfSafe(r.desc),125); d.text(lines,23,y); d.text(pdfMoney(r.amount),187,y,{align:"right"}); y+=lines.length*5;
+    if(r.sub){ d.setFont("helvetica","normal"); d.setFontSize(8.5); d.setTextColor(120,112,104); const s=d.splitTextToSize(pdfSafe(r.sub),125); d.text(s,23,y); y+=s.length*4.2; d.setTextColor(22,19,15);} y+=5; d.setDrawColor(232,226,220); d.line(18,y-2,192,y-2); y+=4; });
+  y+=4; const r=num(k.obRate);
+  const kv=(l,v,bold,color)=>{ d.setFont("helvetica",bold?"bold":"normal"); d.setFontSize(bold?12:10); d.setTextColor(...(color||[22,19,15])); d.text(l,130,y); d.text(v,187,y,{align:"right"}); y+=bold?8:6; };
+  if(isR){ kv("Amount received",pdfMoney(inv.amount),true,[47,116,208]); kv("Package total",pdfMoney(inv.totalAtTime)); kv("Paid to date",pdfMoney(inv.paidAfter)); kv("Remaining balance",pdfMoney(Math.max(0,inv.balanceAfter)),true); }
+  else { if(r>0){ kv("Subtotal excl. OB",pdfMoney(inv.amount-inv.amount*r/(100+r))); kv(`OB ${r}%`,pdfMoney(inv.amount*r/(100+r))); } kv("Total",pdfMoney(inv.amount),true,[47,116,208]); }
+  if(inv.void){ d.setFont("helvetica","bold"); d.setFontSize(60); d.setTextColor(201,54,42); d.text("VOID",105,170,{align:"center",angle:20}); }
+  y=Math.max(y+8,200); d.setFont("helvetica","normal"); d.setFontSize(9); d.setTextColor(110,104,98);
+  if(!isR){ const inc=["Included: "+INCLUDED.join(", ")+"."]; if(k.bank) inc.push("Bank transfer to: "+k.bank+" - mention "+inv.number+"."); d.text(d.splitTextToSize(pdfSafe(inc.join("\n")),174),18,y); }
+  else d.text("Thank you! / Danki!",18,y);
+  d.setFontSize(8); d.setTextColor(160,150,140); d.text(pdfSafe((k.business||"")+" · Generated by Trusty Ofisina"),18,287);
+  return d.output("blob");
+}
+function dayPdf(day, L){
+  const d=pdfBase("LES SCHEDULE"); d.setFont("helvetica","bold"); d.setFontSize(13); d.setTextColor(22,19,15); d.text(pdfSafe(longDate(day)),18,74);
+  let y=82; d.setFillColor(234,239,245); d.roundedRect(18,y,174,9,2,2,"F"); d.setFontSize(8.5); d.setTextColor(110,104,98);
+  ["TIME","CLIENT","PHONE","VEHICLE","INSTRUCTOR"].forEach((h,i)=>d.text(h,[22,42,95,130,166][i],y+6)); y+=16;
+  L.forEach(l=>{ const cs=lessonClients(l); const c=cs[0]; d.setFont("helvetica","bold"); d.setFontSize(10.5); d.setTextColor(22,19,15); d.text(pdfSafe(l.time||""),22,y);
+    d.text(pdfSafe(d.splitTextToSize(cs.length>1?"Teoria: "+cs.map(x=>firstName(x.name)).join(", "):(c?.name||"-"),50)[0]),42,y); d.setFont("helvetica","normal"); d.text(pdfSafe(cs.length>1?"":(c?.phone||"")),95,y); d.text(pdfSafe(lessonVehShort(l)),130,y); d.text(pdfSafe(l.instructor||""),166,y);
+    if(l.note){ d.setFontSize(8.5); d.setTextColor(120,112,104); d.text(pdfSafe(l.note),42,y+4.5); y+=4.5; }
+    y+=4; d.setDrawColor(232,226,220); d.line(18,y,192,y); y+=7; if(y>275){ d.addPage(); y=20; } });
+  return d.output("blob");
+}
+function reportPdf(title, rows, sections){
+  const d=pdfBase("RAPPORT"); d.setFont("helvetica","bold"); d.setFontSize(14); d.setTextColor(22,19,15); d.text(pdfSafe(title),18,74); let y=86;
+  sections.forEach(sec=>{ d.setFont("helvetica","bold"); d.setFontSize(9); d.setTextColor(150,140,130); d.text(pdfSafe(sec.h.toUpperCase()),18,y); y+=6;
+    sec.rows.forEach(([l,v,b])=>{ d.setFont("helvetica",b?"bold":"normal"); d.setFontSize(10); d.setTextColor(22,19,15); d.text(pdfSafe(d.splitTextToSize(l,120)[0]),18,y); d.text(pdfSafe(v),192,y,{align:"right"}); y+=5.6; if(y>280){ d.addPage(); y=20; } }); y+=6; });
+  return d.output("blob");
+}
+
+/* day image */
+async function dayPng(day, L){
+  try{ await document.fonts.load('800 60px "Nunito"'); }catch(e){}
+  const W=1080, rowH=118, H=360+L.length*rowH+120; const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const g=cv.getContext("2d");
+  g.fillStyle="#F2F5F9"; g.fillRect(0,0,W,H); g.fillStyle="#1B1C1F"; g.fillRect(0,0,W,26); g.fillStyle="#FFD900"; for(let x=10;x<W;x+=64) g.fillRect(x,11,36,5);
+  if(logoImg){ g.fillStyle="#fff"; roundRect(g,W-330,56,270,200,28); g.fill(); g.drawImage(logoImg,W-310,76,230,161); }
+  g.fillStyle="#111418"; g.font='800 84px "Nunito", sans-serif'; g.fillText("Les schedule",64,140);
+  g.font='500 38px "Nunito", sans-serif'; g.fillStyle="#7A726B"; g.fillText(longDate(day),64,200);
+  g.font='700 30px "Nunito", sans-serif'; g.fillStyle="#2F74D0"; g.fillText((cfg().business||"").toUpperCase(),64,270);
+  let y=320; L.forEach(l=>{ g.fillStyle="#FFFFFF"; roundRect(g,48,y,W-96,rowH-18,28); g.fill();
+    g.fillStyle="#2F74D0"; roundRect(g,48,y,12,rowH-18,6); g.fill(); g.fillStyle="#111418"; g.font='800 44px "Nunito", sans-serif'; g.fillText(l.time||"",84,y+64);
+    g.font='700 38px "Nunito", sans-serif'; fitText(g, lessonWho(l,true), 280, y+56, W-380, 38);
+    g.font='500 28px "Nunito", sans-serif'; g.fillStyle="#7A726B"; g.fillText(`${lessonVehLabel(l)} · ${l.instructor||""}`,280,y+92);
+    y+=rowH; });
+  g.fillStyle="#7A726B"; g.font='500 28px "Nunito", sans-serif'; g.fillText("Te ora! · @trusty_autorijschool",64,H-60);
+  return await new Promise(r=>cv.toBlob(r,"image/png"));
+}
+
+/* ───────────────── actions ───────────────── */
+const ACT = {
+  close: closeModal,
+  nav: ds=>{ closeModal(); go(ds.v); },
+  me: ds=>{ S.me=ds.v; lsSet("tr.me",ds.v); render(); },
+  mine: ()=>{ S.mineOnly=!S.mineOnly; lsSet("tr.mine",S.mineOnly); render(); },
+  mineSet: ds=>{ S.mineOnly=ds.v==="1"; lsSet("tr.mine",S.mineOnly); render(); },
+  more: ()=> openModal(`${head("More")}<div class="list">${NAV.slice(3).map(([v,l,i])=>`<button class="item" data-act="nav" data-v="${v}"><div class="veh-ico">${ic(i)}</div><div class="grow"><b>${l}</b></div>${ic("right",'width="18" height="18"')}</button>`).join("")}</div>
+     <div><div class="eyebrow" style="margin-bottom:8px">Working as</div><div class="chips">${INSTRUCTORS.map(n=>`<button class="chip${S.me===n?" on":""}" data-act="meClose" data-v="${n}">${n}</button>`).join("")}</div></div>`),
+  meClose: ds=>{ S.me=ds.v; lsSet("tr.me",ds.v); closeModal(); render(); },
+  quick: ()=> openModal(`${head("Add")}<div class="grid g2">
+     <button class="pick" data-act="newClient"><div class="veh-ico">${ic("users")}</div><b>New client</b><span class="small muted">With package & invoice</span></button>
+     <button class="pick" data-act="lessonNew"><div class="veh-ico">${ic("cal")}</div><b>Lesson</b><span class="small muted">Schedule & assign</span></button>
+     <button class="pick" data-act="payPick"><div class="veh-ico">${ic("coin")}</div><b>Payment</b><span class="small muted">Receipt is created</span></button>
+     <button class="pick" data-act="expNew"><div class="veh-ico">${ic("camera")}</div><b>Expense</b><span class="small muted">Photo of receipt</span></button></div>`),
+  payPick: ()=>{ const cs=S.clients.filter(c=>totals(c).balance>0.009).sort((a,b)=>a.name.localeCompare(b.name)); openModal(`${head("Payment for…")}${cs.length?`<div class="list">${cs.map(c=>`<button class="item" data-act="payNew" data-id="${esc(c.id)}">${avatar(c)}<div class="grow"><b>${esc(c.name)}</b></div><div class="end num">${money0(totals(c).balance)}</div></button>`).join("")}</div>`:`<div class="empty">Nobody has an open balance.</div>`}`); },
+  openClient: ds=>{ closeModal(); S.clientId=ds.id; go("client"); },
+  cfilter: ds=>{ S.cfilter=ds.v; go("clients"); },
+  cfilterSet: ds=>{ S.cfilter=ds.v; render(); },
+  newClient: ()=> newClient(),
+  wizNext: ()=>{ const v=formVals($("#wf")); if(!v.name.trim()){ toast("Enter the client's name"); $("#w_name").focus(); return; } Object.assign(W.data,v); W.step=2; wizard(); },
+  wizVeh: ds=>{ W.data.vehicle=ds.v; W.step=3; wizard(); },
+  wizPkg: ds=>{ W.data.pkg=Number(ds.v); W.step=4; wizard(); },
+  wizBack: ()=>{ if(W.step===4) Object.assign(W.data, formVals($("#wf"))); W.step=Math.max(1,W.step-1); wizard(); },
+  wizSave: (ds,el)=> wizSave(el),
+  editClient: ds=> editClient(ds.id),
+  saveClient: async (ds)=>{ const v=formVals($("#ef")); if(!v.name.trim()) return toast("Name can't be empty");
+    const p={...v, name:v.name.trim(), lessonsIncluded:Math.max(0,Math.round(num(v.lessonsIncluded))), lessonsTaken:Math.max(0,Math.round(num(v.lessonsTaken)))};
+    if(await safe(()=>patch("clients",ds.id,p),"Saved")) closeModal(); },
+  delClientAsk: ()=>{ const c=client(S.clientId); $("#delZone").innerHTML=`<div class="confirm-box"><b>Delete ${esc(c.name)}?</b><span class="small">This removes the client with all their lessons, payments, invoices and receipts. It can't be undone. To keep the records, set the status to Archived instead.</span><div class="row"><button class="btn danger sm" data-act="delClientYes">Delete everything</button><button class="btn sm" data-act="delCancel">Keep client</button></div></div>`; },
+  delCancel: ()=>{ const z=$("#delZone"); if(z) z.innerHTML=""; },
+  delClientYes: async ()=>{ const id=S.clientId; const ok=await safe(async()=>{
+      for(const x of S.lessons.filter(x=>lessonCids(x).includes(id))){ const rest=lessonCids(x).filter(c=>c!==id); if(rest.length) await patch("lessons",x.id,{clientIds:rest,clientId:rest[0]}); else await remove("lessons",x.id); }
+      for(const col of ["payments","invoices"]) for(const x of S[col].filter(x=>x.clientId===id)) await remove(col,x.id);
+      await remove("clients",id); },"Client deleted"); if(ok){ closeModal(); go("clients"); } },
+  toggleId: ds=>{ const c=client(ds.id); safe(()=>patch("clients",c.id,{idPrinted:!c.idPrinted, idPrintedAt:!c.idPrinted?today():""}), !c.idPrinted?"ID marked as printed":"ID marked as not printed"); },
+  lessonsAdj: ds=>{ const c=client(ds.id); const n=Math.max(0,num(c.lessonsTaken)+Number(ds.v)); safe(()=>patch("clients",c.id,{lessonsTaken:n})); },
+  clientPhoto: async ds=>{ if(!assets) return toast("Uploading photos needs Editor access."); const f=await pickFile("image/*"); if(!f) return; toast("Uploading…");
+    await safe(async()=>{ const r=await uploadFile(f,1600); await patch("clients",ds.id,{photoId:r.id}); },"Photo saved"); },
+  payNew: ds=> payNew(ds.id),
+  savePay: async (ds,el)=>{ const v=formVals($("#pf")); const a=Math.round(num(v.amount)*100)/100; if(a<=0) return toast("Enter an amount above 0"); el.disabled=true;
+    if(await safe(()=>recordPayment(client(ds.id),a,v.date||today(),v.method,v.note),"Payment saved · receipt created")) closeModal(); else el.disabled=false; },
+  payDelAsk: ds=>{ const p=S.payments.find(x=>x.id===ds.id); openModal(`${head("Delete payment?")}<div>Delete the payment of <b>${money(p.amount)}</b> from ${esc(niceDate(p.date))}? Its receipt is deleted too.</div><div class="row between"><button class="btn ghost" data-act="close">Keep</button><button class="btn danger" data-act="payDel" data-id="${esc(p.id)}">Delete payment</button></div>`); },
+  payDel: async ds=>{ const p=S.payments.find(x=>x.id===ds.id); if(await safe(async()=>{ await remove("payments",p.id); if(p.receiptId) await remove("invoices",p.receiptId); },"Payment deleted")) closeModal(); },
+  chargeNew: ds=> chargeNew(ds.id),
+  saveCharge: async (ds,el)=>{ const v=formVals($("#chf")); const a=num(v.amount); if(a<=0||!v.desc.trim()) return toast("Enter a description and amount"); const c=client(ds.id); el.disabled=true;
+    const ok=await safe(async()=>{ await createInvoice(c,[{desc:v.desc.trim(),amount:a}],v.date||today()); const n=Math.round(num(v.lessons)); if(n>0) await patch("clients",c.id,{lessonsIncluded:num(c.lessonsIncluded)+n}); },"Invoice created");
+    if(ok) closeModal(); else el.disabled=false; },
+  voidAsk: ds=>{ const i=S.invoices.find(x=>x.id===ds.id); openModal(`${head("Void invoice "+esc(i.number)+"?")}<div>The invoice stays on file marked VOID and no longer counts toward what the client owes.</div><div class="row between"><button class="btn ghost" data-act="close">Cancel</button><button class="btn danger" data-act="voidYes" data-id="${esc(i.id)}">Void invoice</button></div>`); },
+  voidYes: async ds=>{ if(await safe(()=>patch("invoices",ds.id,{void:true, voidedAt:today()}),"Invoice voided")) closeModal(); },
+  dlDoc: ds=>{ const i=S.invoices.find(x=>x.id===ds.id); if(!window.jspdf) return toast("PDF tool is still loading. Try again."); saveFile(`${i.number} ${i.clientName}.pdf`.replace(/[\/\\:*?"<>|]/g,""), docPdf(i)); },
+  lessonNew: ds=>{ lessonModal(ds.id||null,null); },
+  lessonEdit: ds=> lessonModal(null, ds.id),
+  lessonType: ds=>{ const dft=lessonDraft(); dft.type=ds.v; if(ds.v==="practical") dft.clientIds=dft.clientIds.slice(0,1); lessonModal(LM.clientId, LM.lessonId, dft); },
+  saveLesson: async (ds,el)=>{ const v=lessonDraft(); const th=v.type==="theory";
+    if(!v.clientIds.length) return toast(th?"Pick at least one client for the theory class":"Choose a client"); if(!v.date||!v.time) return toast("Pick a date and time"); el.disabled=true;
+    const ok=await safe(async()=>{
+      const base={type:th?"theory":"practical",clientId:v.clientIds[0],clientIds:v.clientIds,date:v.date,time:v.time,duration:Number(v.duration)||60,instructor:v.instructor,vehicle:th?"":v.vehicle,note:v.note||""};
+      if(ds.id){ const old=S.lessons.find(l=>l.id===ds.id); const st=v.status||old.status; const nl={...old,...base,status:st};
+        await patch("lessons",ds.id,{...base,status:st, reminded:(old.date!==v.date||old.time!==v.time)?false:!!old.reminded});
+        await adjustCounts(old,nl); }
+      else { const reps=Math.max(1,Number(v.repeat)||1); for(let i=0;i<reps;i++){ const id=uid(); await put("lessons",id,{id,...base,date:addDays(v.date,7*i),status:"planned",reminded:false,createdAt:new Date().toISOString(),by:S.me||""}); } }
+    }, ds.id?"Lesson updated":(th?"Theory class scheduled":"Lesson scheduled"));
+    if(ok) closeModal(); else el.disabled=false; },
+  lessonDelAsk: ()=>{ $("#delZone").innerHTML=`<div class="confirm-box"><b>Delete this lesson?</b><div class="row"><button class="btn danger sm" data-act="lessonDel">Delete</button><button class="btn sm" data-act="delCancel">Keep</button></div></div>`; },
+  lessonDel: async ()=>{ const id=$("[data-act=saveLesson]").dataset.id; const l=S.lessons.find(x=>x.id===id);
+    if(await safe(async()=>{ await remove("lessons",id); await adjustCounts(l,null); },"Lesson deleted")) closeModal(); },
+  lessonStatus: ds=>{ const l=S.lessons.find(x=>x.id===ds.id); const cs=lessonClients(l);
+    safe(async()=>{ await patch("lessons",l.id,{status:ds.v}); await adjustCounts(l,{...l,status:ds.v}); }, ds.v==="done"?(isTheory(l)?"Theory class done · counted for "+cs.length+" client"+(cs.length>1?"s":""):"Lesson done · +1 for "+firstName(cs[0]?.name)):""); },
+  remindGroup: ds=>{ const l=S.lessons.find(x=>x.id===ds.id); const cs=lessonClients(l);
+    openModal(`${head("Remind the theory class", esc(niceDate(l.date))+" · "+esc(l.time)+" · "+cs.length+" clients")}<div class="list">${cs.map(c=>`<div class="item"><div class="grow"><b>${esc(c.name)}</b><span class="small muted">${esc(c.phone||"No phone number")}</span></div>${waBtn(l,c)}</div>`).join("")}</div><div class="small muted">Each button opens WhatsApp with the reminder for that client.</div>`); },
+  reminded: ds=>{ const l=S.lessons.find(x=>x.id===ds.id); if(l&&!l.reminded) safe(()=>patch("lessons",l.id,{reminded:true,remindedAt:new Date().toISOString()})); return "allow"; },
+  markReminded: ds=> safe(()=>patch("lessons",ds.id,{reminded:true,remindedAt:new Date().toISOString()}),"Marked as sent"),
+  dayShift: ds=>{ S.day=addDays(S.day,Number(ds.v)); render(); },
+  dayToday: ()=>{ S.day=today(); render(); },
+  daySet: ds=>{ S.day=ds.v; render(); },
+  dayInst: ds=>{ S.dayInst=ds.v; render(); },
+  dayPdf: ()=>{ const L=lessonsForSchedule(); saveFile(`Schedule ${S.day}.pdf`, dayPdf(S.day,L)); },
+  dayPng: async ()=>{ const L=lessonsForSchedule(); const b=await dayPng(S.day,L); saveFile(`Schedule ${S.day}.png`, b); },
+  dayCopy: ()=>{ const L=lessonsForSchedule(); const txt=`*Les schedule – ${longDate(S.day)}*\n`+L.map(l=>`${l.time}  ${lessonWho(l,true)} · ${lessonVehShort(l)} · ${l.instructor}`).join("\n")+`\n\n${cfg().business}`; copy(txt,"Schedule copied"); },
+  monthSet: ds=>{ S.month=Number(ds.v); render(); },
+  yearShift: ds=>{ S.year+=Number(ds.v); render(); },
+  exportMonth: ()=>{ const s=monthStats(S.year,S.month); const rows=[["Type","Date","Number / vendor","Client / category","Method","Amount XCG"]];
+    s.pays.forEach(p=>{ const r=S.invoices.find(i=>i.id===p.receiptId); rows.push(["Payment received",p.date,r?.number||"",client(p.clientId)?.name||"",p.method,num(p.amount).toFixed(2)]); });
+    s.invs.forEach(i=>rows.push(["Invoice issued",i.date,i.number,i.clientName,"",num(i.amount).toFixed(2)]));
+    s.exps.forEach(e=>rows.push(["Expense",e.date,e.vendor||"",e.category,e.paidBy||"",(-num(e.amount)).toFixed(2)]));
+    rows.push([],["Omzet incl. OB","","","","",s.omzet.toFixed(2)],["OB "+num(cfg().obRate)+"%","","","","",s.ob.toFixed(2)],["Expenses","","","","",s.expenses.toFixed(2)]);
+    saveFile(`Omzet ${s.ym}.csv`, rows.map(r=>r.map(csvCell).join(",")).join("\n")); },
+  exportMonthPdf: ()=>{ const s=monthStats(S.year,S.month); const r=num(cfg().obRate);
+    saveFile(`OB aangifte ${s.ym}.pdf`, reportPdf(`Omzetbelasting ${MONTHS_L[S.month]} ${S.year}`,null,[
+      {h:"Summary",rows:[["Payments received",pdfMoney(s.received)],["Invoiced",pdfMoney(s.invoiced)],["Omzet incl. OB ("+(cfg().obBasis==="invoice"?"invoice":"cash")+" basis)",pdfMoney(s.omzet),1],["Omzet excl. OB",pdfMoney(s.omzet-s.ob)],[`OB to pay (${r}%)`,pdfMoney(s.ob),1],["Expenses",pdfMoney(s.expenses)]]},
+      {h:"Payments",rows:s.pays.map(p=>[`${p.date}  ${client(p.clientId)?.name||""} (${p.method})`,pdfMoney(p.amount)])},
+      {h:"Expenses",rows:s.exps.map(e=>[`${e.date}  ${e.category}${e.vendor?" - "+e.vendor:""}`,pdfMoney(e.amount)])}])); },
+  exportYear: ()=>{ const y=S.year; const rows=[["Month","Payments received","Invoiced","Omzet incl. OB","OB","Expenses","Result"]];
+    let T=[0,0,0,0,0,0]; for(let m=0;m<12;m++){ const s=monthStats(y,m); const v=[s.received,s.invoiced,s.omzet,s.ob,s.expenses,s.omzet-s.ob-s.expenses]; v.forEach((x,i)=>T[i]+=x); rows.push([MONTHS_L[m],...v.map(x=>x.toFixed(2))]); }
+    rows.push(["Total",...T.map(x=>x.toFixed(2))],[],["Expense category","Amount"]);
+    const byCat={}; S.expenses.filter(e=>(e.date||"").startsWith(String(y))).forEach(e=>byCat[e.category||"Other"]=(byCat[e.category||"Other"]||0)+num(e.amount)); Object.entries(byCat).forEach(([k,v])=>rows.push([k,v.toFixed(2)]));
+    rows.push([],["All expenses","Date","Category","Vendor","Vehicle","Paid by","Amount","Note"]); S.expenses.filter(e=>(e.date||"").startsWith(String(y))).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>rows.push(["",e.date,e.category,e.vendor||"",VEH[e.vehicle]?.name||"",e.paidBy||"",num(e.amount).toFixed(2),e.note||""]));
+    saveFile(`Jaaroverzicht ${y}.csv`, rows.map(r=>r.map(csvCell).join(",")).join("\n")); },
+  exportYearPdf: ()=>{ const y=S.year; const ms=[...Array(12)].map((_,m)=>monthStats(y,m)); const T=ms.reduce((a,s)=>({o:a.o+s.omzet,b:a.b+s.ob,e:a.e+s.expenses}),{o:0,b:0,e:0});
+    const byCat={}; S.expenses.filter(e=>(e.date||"").startsWith(String(y))).forEach(e=>byCat[e.category||"Other"]=(byCat[e.category||"Other"]||0)+num(e.amount));
+    saveFile(`Jaaroverzicht ${y}.pdf`, reportPdf(`Year overview ${y} (inkomstenbelasting)`,null,[
+      {h:"Totals",rows:[["Omzet incl. OB",pdfMoney(T.o)],["OB",pdfMoney(T.b)],["Omzet excl. OB",pdfMoney(T.o-T.b),1],["Expenses",pdfMoney(T.e)],["Result before income tax",pdfMoney(T.o-T.b-T.e),1]]},
+      {h:"Per month (omzet excl. OB / expenses)",rows:ms.map((s,m)=>[MONTHS_L[m],pdfMoney(s.omzet-s.ob)+"  /  "+pdfMoney(s.expenses)])},
+      {h:"Expenses by category",rows:Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,pdfMoney(v)])}])); },
+  expNew: ()=>{ closeModal(); if(!assets) return expNew(false); expNew(true); },
+  expNewNoPhoto: ()=> expNew(false),
+  expMonth: ds=>{ const [y,m]=S.expMonth.split("-").map(Number); const d=new Date(y,m-1+Number(ds.v),1); S.expMonth=d.getFullYear()+"-"+pad(d.getMonth()+1); render(); },
+  saveExp: async (ds,el)=>{ const v=formVals($("#xf")); const a=num(v.amount); if(a<=0) return toast("Enter the amount"); el.disabled=true; el.textContent="Saving…";
+    const ok=await safe(async()=>{ let fileId=null, fileType=""; if(expDraft&&expDraft.file){ const r=await uploadFile(expDraft.file,1800); fileId=r.id; fileType=r.contentType; }
+      const id=uid(); await put("expenses",id,{id,...v,amount:a,fileId,fileType,by:S.me||"",createdAt:new Date().toISOString()}); S.expMonth=(v.date||today()).slice(0,7); },"Expense saved");
+    if(ok){ if(expDraft?.preview) URL.revokeObjectURL(expDraft.preview); closeModal(); if(S.view!=="expenses") go("expenses"); } else { el.disabled=false; el.textContent="Save expense"; } },
+  expView: ds=> expView(ds.id),
+  expDl: async ds=>{ const e=S.expenses.find(x=>x.id===ds.id); try{ const b=await (await fetch(blobUrl(e.fileId))).blob(); const ext=String(e.fileType).includes("pdf")?"pdf":String(e.fileType).includes("png")?"png":"jpg"; saveFile(`Receipt ${e.date} ${e.vendor||e.category}.${ext}`.replace(/[\/\\:*?"<>|]/g,""), b); }catch(err){ toast("Couldn't load the receipt file."); } },
+  expDelAsk: ds=>{ $("#delZone").innerHTML=`<div class="confirm-box" style="width:100%"><b>Delete this expense and its photo?</b><div class="row"><button class="btn danger sm" data-act="expDel" data-id="${esc(ds.id)}">Delete</button><button class="btn sm" data-act="close">Keep</button></div></div>`; },
+  expDel: async ds=>{ const e=S.expenses.find(x=>x.id===ds.id); if(await safe(async()=>{ await remove("expenses",e.id); if(e.fileId&&assets) try{ await assets.delete(e.fileId);}catch(x){} },"Expense deleted")) closeModal(); },
+  socialFor: ds=>{ const c=client(ds.id); S.socialClient=c.id; S.socialPhoto=c.photoId||null; S.socialMode="all"; S.socialZoom=1; S.socialX=0; S.socialY=0; go("social"); },
+  socialMode: ds=>{ S.socialMode=ds.v; render(); },
+  socialPhoto: async ()=>{ const f=await pickFile("image/*"); if(!f) return; toast("Uploading…"); await safe(async()=>{ const r=await uploadFile(f,2000); S.socialPhoto=r.id; S.socialZoom=1;S.socialX=0;S.socialY=0; const c=client(S.socialClient); if(c) await patch("clients",c.id,{photoId:r.id}); render(); },"Photo added"); },
+  socialUseSaved: ()=>{ S.socialPhoto=client(S.socialClient).photoId; render(); },
+  socialDl: async ()=>{ const cv=$("#socCanvas"); const c=client(S.socialClient); cv.toBlob(b=>{ if(b) saveFile(`Post ${c?c.name:"client"}.png`, b); else toast("Couldn't create the image."); },"image/png"); },
+  socialCopy: ()=> copy($("#socCap").value,"Caption copied"),
+  socialPosted: ()=>{ const c=client(S.socialClient); safe(()=>patch("clients",c.id,{posted:!c.posted,postedAt:!c.posted?today():""}), !c.posted?"Marked as posted":"Marked as not posted"); },
+  saveSettings: async ()=>{ const v=formVals($("#setForm")); const prices={}; Object.keys(VEH).forEach(k=>prices[k]=[0,1,2,3].map(i=>num(v[`p_${k}_${i}`])));
+    const p={business:v.business,phone:v.phone,address:v.address,email:v.email,kvk:v.kvk,crib:v.crib,bank:v.bank,invoicePrefix:(v.invoicePrefix||"TA").trim(),obRate:num(v.obRate),obBasis:v.obBasis,reminder:v.reminder,caption:v.caption,prices};
+    await safe(()=>saveSettings(p),"Settings saved"); },
+  tplUpload: async ()=>{ const f=await pickFile("image/png"); if(!f) return; toast("Uploading template…"); await safe(async()=>{ const r=await assets.upload(f,{type:"image/png"}); await saveSettings({templateId:r.id, photoBox:cfg().photoBox||DEFAULTS.photoBox}); },"Template saved"); },
+  tplRemove: ()=> safe(()=>saveSettings({templateId:null}),"Using built-in template"),
+  savePb: ()=>{ const pb={}; document.querySelectorAll("[data-pb]").forEach(i=>pb[i.dataset.pb]=num(i.value)); if(pb.w<=0||pb.h<=0) return toast("Width and height must be above 0"); safe(()=>saveSettings({photoBox:pb}),"Photo area saved"); }
+};
+function lessonsForSchedule(){ return S.lessons.filter(l=>l.date===S.day&&l.status!=="cancelled"&&(S.dayInst==="all"||l.instructor===S.dayInst)).sort((a,b)=>(a.time||"").localeCompare(b.time||"")); }
+async function copy(t,msg){ try{ await navigator.clipboard.writeText(t); toast(msg); }catch(e){ openModal(`${head("Copy this text")}<textarea id="cpy" rows="10" readonly>${esc(t)}</textarea>`); const a=$("#cpy"); a.focus(); a.select(); } }
+
+document.addEventListener("pointerdown", e=>{
+  const el=e.target.closest(".btn,.chip,.icon-btn,.item,.pick,.nav-btn,.alert,.toggle,.thumb,.wday,.bottom button"); if(!el||matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r=el.getBoundingClientRect(), sz=Math.max(r.width,r.height)*2.2, sp=document.createElement("span");
+  sp.className="ripple"; sp.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-r.left-sz/2}px;top:${e.clientY-r.top-sz/2}px`; el.appendChild(sp); setTimeout(()=>sp.remove(),650);
+});
+document.addEventListener("click", e=>{
+  const t=e.target.closest("[data-act]"); if(!t) return;
+  const fn=ACT[t.dataset.act]; if(!fn) return;
+  if(t.tagName==="A"){ fn(t.dataset,t,e); return; } // links keep their default (open WhatsApp etc.)
+  e.preventDefault(); fn(t.dataset,t,e);
+});
+document.addEventListener("input", e=>{
+  const k=e.target.dataset.in; if(!k) return;
+  if(k==="q"){ S.q=e.target.value; const l=$("#clist"), list=filteredClients(); if(l && list.length) l.innerHTML=list.map(clientRow).join(""); else render(); }
+  else if(k==="wizPaid") wizLeft();
+  else if(k.startsWith("social")){ S[k]=Number(e.target.value); drawSocial(); }
+});
+document.addEventListener("change", e=>{
+  if(e.target.name==="cid"){ lessonCheck(); return; }
+  const k=e.target.dataset.change; if(!k) return; const v=e.target.value, id=e.target.dataset.id;
+  if(k==="day"&&v){ S.day=v; render(); }
+  else if(k==="examDate") safe(()=>patch("clients",id,{examDate:v}),"Exam date saved");
+  else if(k==="examResult"){ const p={examResult:v}; if(v==="passed") p.status="passed"; else if((client(id)?.status)==="passed") p.status="active"; safe(()=>patch("clients",id,p), v==="passed"?"Pabien! Marked as passed. Make their social post next.":"Saved"); }
+  else if(k==="socialClient"){ S.socialClient=v||null; const c=client(v); S.socialPhoto=c?.photoId||null; S.socialZoom=1;S.socialX=0;S.socialY=0; render(); }
+  else if(k==="lessonClient"){ const c=client(v); if(c){ if($("#l_v")) $("#l_v").value=c.vehicle; $("#l_i").value=c.instructor||$("#l_i").value; } lessonCheck(); }
+  else if(k==="lessonCheck") lessonCheck();
+});
+try{ if(matchMedia("(prefers-reduced-motion: reduce)").matches) document.querySelector(".city")?.pauseAnimations(); }catch(e){}
+boot();
+</script>
