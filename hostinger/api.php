@@ -51,6 +51,45 @@ function save_doc(string $col, string $id, string $json): void {
     db()->prepare($sql)->execute([$col, $id, $json, $now]);
 }
 
+
+// ---------- Instagram (Graph API, Instagram account linked to a Facebook page) ----------
+function graph_base(): string { global $CONFIG; return rtrim($CONFIG['graph_base'] ?? 'https://graph.facebook.com/v21.0', '/'); }
+function ig_file(): string { return data_dir() . '/instagram.json'; }
+function ig_settings(): ?array { $f = ig_file(); if (!is_file($f)) return null; $j = json_decode((string)file_get_contents($f), true); return is_array($j) ? $j : null; }
+function ig_save(array $d): void { file_put_contents(ig_file(), json_encode($d), LOCK_EX); @chmod(ig_file(), 0600); }
+
+function graph(string $method, string $path, array $params): array {
+    $url = graph_base() . '/' . ltrim($path, '/');
+    $ch = curl_init();
+    if ($method === 'GET') { curl_setopt($ch, CURLOPT_URL, $url . '?' . http_build_query($params)); }
+    else { curl_setopt($ch, CURLOPT_URL, $url); curl_setopt($ch, CURLOPT_POST, true); curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params)); }
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 45, CURLOPT_CONNECTTIMEOUT => 10]);
+    $body = curl_exec($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $cerr = curl_error($ch);
+    curl_close($ch);
+    if ($body === false) fail('unavailable', 'Could not reach Instagram: ' . $cerr, 502);
+    $j = json_decode((string)$body, true);
+    if (!is_array($j)) fail('unavailable', 'Instagram sent an unexpected answer.', 502);
+    if (isset($j['error'])) {
+        $code = (int)($j['error']['code'] ?? 0);
+        $msg = (string)($j['error']['error_user_msg'] ?? $j['error']['message'] ?? 'Unknown error');
+        if ($code === 190) fail('ig_token', 'The Instagram token has expired or was revoked. Make a new token and connect again in Settings.', 400);
+        fail('ig_error', 'Instagram said: ' . $msg, 400);
+    }
+    if ($status >= 400) fail('ig_error', 'Instagram refused the request (' . $status . ').', 400);
+    return $j;
+}
+
+function public_base_url(): string {
+    global $CONFIG;
+    if (!empty($CONFIG['public_base_url'])) return rtrim($CONFIG['public_base_url'], '/');
+    $scheme = is_https() ? 'https' : 'http';
+    $host = preg_replace('/[^A-Za-z0-9.\-:]/', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost'));
+    $dir = rtrim(str_replace('\\', '/', dirname((string)($_SERVER['SCRIPT_NAME'] ?? '/api.php'))), '/');
+    return "$scheme://$host$dir";
+}
+
 switch ($action) {
     case 'sync': {
         // Everything changed since the given time (ms). since=0 returns all live records.
@@ -148,6 +187,77 @@ switch ($action) {
             db()->prepare('DELETE FROM files WHERE id = ?')->execute([$id]);
         }
         json_out(['deleted' => $ext !== false]);
+    }
+    case 'ig_status': {
+        $ig = ig_settings();
+        json_out($ig && !empty($ig['ig_user_id']) ? ['connected' => true, 'username' => $ig['username'] ?? ''] : ['connected' => false]);
+    }
+    case 'ig_connect': {
+        if ($method !== 'POST') fail('invalid_argument', 'Use POST.', 405);
+        $b = body_json();
+        if (!empty($b['choose'])) {
+            $pending = ig_settings();
+            $pick = (string)($b['ig_user_id'] ?? '');
+            foreach (($pending['choices'] ?? []) as $c) {
+                if ($c['id'] === $pick) { ig_save(['token' => $pending['token'], 'ig_user_id' => $c['id'], 'username' => $c['username'], 'page' => $c['page']]); json_out(['connected' => true, 'username' => $c['username']]); }
+            }
+            fail('invalid_argument', 'Pick one of the accounts in the list.');
+        }
+        $token = trim((string)($b['token'] ?? ''));
+        if (strlen($token) < 20) fail('invalid_argument', 'That doesn\'t look like an access token. Copy the whole token.');
+        $res = graph('GET', 'me/accounts', ['fields' => 'name,instagram_business_account{id,username}', 'limit' => 50, 'access_token' => $token]);
+        $choices = [];
+        foreach (($res['data'] ?? []) as $pg) {
+            $iga = $pg['instagram_business_account'] ?? null;
+            if ($iga && !empty($iga['id'])) $choices[] = ['id' => (string)$iga['id'], 'username' => (string)($iga['username'] ?? ''), 'page' => (string)($pg['name'] ?? '')];
+        }
+        if (!$choices) fail('ig_error', 'No Instagram professional account was found on the Facebook pages this token can see. Check that the token has the permissions listed in INSTAGRAM.md and that @trusty_autorijschool is linked to your Facebook page.');
+        if (count($choices) === 1) { $c = $choices[0]; ig_save(['token' => $token, 'ig_user_id' => $c['id'], 'username' => $c['username'], 'page' => $c['page']]); json_out(['connected' => true, 'username' => $c['username']]); }
+        ig_save(['token' => $token, 'choices' => $choices]);
+        json_out(['connected' => false, 'choices' => $choices]);
+    }
+    case 'ig_disconnect': {
+        if ($method !== 'POST') fail('invalid_argument', 'Use POST.', 405);
+        @unlink(ig_file());
+        json_out(['connected' => false]);
+    }
+    case 'ig_post': {
+        if ($method !== 'POST') fail('invalid_argument', 'Use POST.', 405);
+        $ig = ig_settings();
+        if (!$ig || empty($ig['ig_user_id'])) fail('ig_error', 'Instagram isn\'t connected yet. Connect it in Settings.');
+        $f = $_FILES['image'] ?? null;
+        if (!$f || ($f['error'] ?? 1) !== UPLOAD_ERR_OK) fail('invalid_request', 'No image received.');
+        if ($f['size'] > 8 * 1024 * 1024) fail('too_large', 'The image is too large for Instagram (max 8 MB).');
+        $mime = (new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']) ?: '';
+        if ($mime !== 'image/jpeg') fail('unsupported_type', 'Instagram needs a JPEG image.');
+        $caption = mb_substr((string)($_POST['caption'] ?? ''), 0, 2200);
+        @set_time_limit(120);
+        // Instagram downloads the image from a public address, so it is placed in ig/ for the moment of posting only.
+        $dir = __DIR__ . '/ig';
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        $name = bin2hex(random_bytes(16)) . '.jpg';
+        $path = "$dir/$name";
+        if (!move_uploaded_file($f['tmp_name'], $path)) fail('store_unavailable', 'Could not prepare the image. Check folder permissions.', 500);
+        @chmod($path, 0644);
+        register_shutdown_function(static function () use ($path) { @unlink($path); }); // runs even when fail() stops the request
+        {
+            $created = graph('POST', $ig['ig_user_id'] . '/media', ['image_url' => public_base_url() . '/ig/' . $name, 'caption' => $caption, 'access_token' => $ig['token']]);
+            $cid = (string)($created['id'] ?? '');
+            if ($cid === '') fail('ig_error', 'Instagram didn\'t accept the image.');
+            $status = 'IN_PROGRESS';
+            for ($i = 0; $i < 30 && $status !== 'FINISHED'; $i++) {
+                $st = graph('GET', $cid, ['fields' => 'status_code', 'access_token' => $ig['token']]);
+                $status = (string)($st['status_code'] ?? 'FINISHED');
+                if ($status === 'ERROR' || $status === 'EXPIRED') fail('ig_error', 'Instagram couldn\'t process the image. Try again.');
+                if ($status !== 'FINISHED') sleep(2);
+            }
+            if ($status !== 'FINISHED') fail('ig_error', 'Instagram is still processing the image. Wait a minute, then check Instagram before trying again.');
+            $pub = graph('POST', $ig['ig_user_id'] . '/media_publish', ['creation_id' => $cid, 'access_token' => $ig['token']]);
+            $mid = (string)($pub['id'] ?? '');
+            $permalink = '';
+            if ($mid !== '') { try { $pl = graph('GET', $mid, ['fields' => 'permalink', 'access_token' => $ig['token']]); $permalink = (string)($pl['permalink'] ?? ''); } catch (Throwable $e) {} }
+            json_out(['id' => $mid, 'permalink' => $permalink]);
+        }
     }
     default:
         fail('invalid_argument', 'Unknown action.', 404);

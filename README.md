@@ -11,7 +11,7 @@ The team workspace for **Trusty Autorijschool**, built for the instructors (Raic
 - **ID printed:** track whether a client's ID has been printed for the exam date.
 - **Expenses:** upload a photo of a receipt and it's filed by month and category.
 - **Finance:** monthly omzet and omzetbelasting (OB), expenses, and a year overview for the inkomstenbelasting. Exports as CSV and PDF.
-- **Social posts:** place a client's photo in the post template with the preset caption for @trusty_autorijschool.
+- **Social posts:** when a client passes, upload their photo; it's placed in your Canva template with their name and the preset caption. On Hostinger you check the finished post and publish it to @trusty_autorijschool in one tap.
 
 ## Files
 
@@ -23,6 +23,7 @@ The team workspace for **Trusty Autorijschool**, built for the instructors (Raic
 | `hostinger/` | Server side for Hostinger: PHP API, login, one-time setup, and `shim.js`, which connects the app to the server |
 | `build-hostinger.sh` | Builds `dist/trusty-ofisina-hostinger.zip`, ready to upload |
 | `HOSTINGER.md` | Step-by-step install guide for Hostinger |
+| `INSTAGRAM.md` | How to connect Instagram so passed-exam posts can be published from the app |
 
 ## Where it runs
 

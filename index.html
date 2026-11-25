@@ -680,6 +680,16 @@ main{padding-top:24px}
 .wiz-sched{border:1px solid var(--line);border-radius:var(--r-md);padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--accent-soft)}
 .item.exam .time{background:#FFD400;color:#1B1B1D}
 .item.exam .vlabel{color:#8A6A00}
+
+/* social post + template editor + instagram review */
+.tpl-edit{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.tpl-edit{grid-template-columns:minmax(0,1fr)}}
+#tplCanvas{touch-action:none;cursor:move;max-width:360px}
+.ig-review{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.ig-review img{width:100%;border-radius:18px;border:1px solid var(--line);box-shadow:var(--e2)}
+@media (max-width:700px){.ig-review{grid-template-columns:minmax(0,1fr)}}
+.ok-big{display:flex;gap:14px;align-items:center;padding:16px;border-radius:18px;background:var(--good-soft);color:var(--good)}
+.ok-big b{color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -953,6 +963,8 @@ function render(){
   syncNav();
   if(aid){ const el=document.getElementById(aid); if(el){ el.focus(); if(ss) try{el.setSelectionRange(ss[0],ss[1]);}catch(e){} } }
   if(S.view==="social") drawSocial();
+  if(S.view==="settings") drawTplEditor();
+  if(HOST && !S.ig && !S.igLoading && ["social","settings"].includes(S.view)){ S.igLoading=true; loadIg(); }
 }
 const VIEWS=["home","clients","schedule","finance","expenses","social","settings"];
 const toHash=v=>v==="settings"?"app-settings":v, fromHash=h=>h==="app-settings"?"settings":h;
@@ -1272,53 +1284,94 @@ function vExpenses(){
 
 /* social */
 function vSocial(){
-  const c=client(S.socialClient); const cs=[...S.clients].filter(x=>S.socialMode==="all"||(x.status==="passed"||x.examResult==="passed")).sort((a,b)=>(a.posted?1:0)-(b.posted?1:0)||(a.name||"").localeCompare(b.name||""));
-  const k=cfg();
-  const cap = c? captionFor(c):"";
-  return `<div class="page-head"><h1>Social post</h1><div class="muted" style="margin-top:8px">Client photo in your template, caption ready for @trusty_autorijschool</div></div>
+  const c=client(S.socialClient); const k=cfg();
+  const byName=(a,b)=>(a.name||"").localeCompare(b.name||"");
+  const passed=S.clients.filter(x=>x.status==="passed"||x.examResult==="passed").sort((a,b)=>(a.posted?1:0)-(b.posted?1:0)||byName(a,b));
+  const others=S.clients.filter(x=>!passed.includes(x)&&(x.status||"active")!=="archived").sort(byName);
+  const o=x=>opt(x.id,x.name+(x.posted?"  ✓ posted":""),S.socialClient||"");
+  const cap = c? (S.socialCaption!=null&&S.socialCaptionFor===c.id? S.socialCaption : captionFor(c)):"";
+  const igReady = HOST && S.ig && S.ig.connected;
+  return `<div class="page-head"><h1>Social post</h1><div class="muted" style="margin-top:8px">Upload the photo, check the post, and publish it to @trusty_autorijschool</div></div>
    <div class="grid g2 stack" style="align-items:start">
-    <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="card" style="display:flex;flex-direction:column;gap:16px">
       <div class="field"><label for="socC">Client</label>
-        <div class="chips">${[["passed","Passed"],["all","All clients"]].map(([v,l])=>`<button class="chip${S.socialMode===v?" on":""}" data-act="socialMode" data-v="${v}">${l}</button>`).join("")}</div>
-        <select id="socC" data-change="socialClient">${opt("","Choose a client…",S.socialClient||"")}${cs.map(x=>opt(x.id,x.name+(x.posted?"  ✓ posted":""),S.socialClient||"")).join("")}</select></div>
+        <select id="socC" data-change="socialClient">${opt("","Choose a client…",S.socialClient||"")}${passed.length?`<optgroup label="Passed their exam">${passed.map(o).join("")}</optgroup>`:""}${others.length?`<optgroup label="Other clients">${others.map(o).join("")}</optgroup>`:""}</select></div>
       ${c?`<div class="row"><button class="btn primary" data-act="socialPhoto" ${assets?"":"disabled"}>${ic("up")} ${S.socialPhoto?"Change photo":"Upload photo"}</button>
          ${c.photoId&&S.socialPhoto!==c.photoId?`<button class="btn" data-act="socialUseSaved">Use saved photo</button>`:""}</div>
-       <div class="field"><label for="socZ">Zoom</label><input type="range" id="socZ" min="1" max="3" step="0.01" value="${S.socialZoom}" data-in="socialZoom"></div>
+       ${S.socialPhoto?`<div class="field"><label for="socZ">Zoom</label><input type="range" id="socZ" min="1" max="3" step="0.01" value="${S.socialZoom}" data-in="socialZoom"></div>
        <div class="grid g2"><div class="field"><label for="socX">Left / right</label><input type="range" id="socX" min="-1" max="1" step="0.01" value="${S.socialX}" data-in="socialX"></div>
-       <div class="field"><label for="socY">Up / down</label><input type="range" id="socY" min="-1" max="1" step="0.01" value="${S.socialY}" data-in="socialY"></div></div>
-       <div class="field"><label for="socCap">Caption</label><textarea id="socCap" rows="6">${esc(cap)}</textarea><span class="hint">From your preset in Settings. Edit here for this post only.</span></div>
-       <div class="row"><button class="btn dark" data-act="socialDl" ${S.socialPhoto?"":"disabled"}>${ic("down")} Download image</button><button class="btn" data-act="socialCopy">${ic("copy")} Copy caption</button></div>
-       <div class="row"><a class="btn sm" href="https://www.instagram.com/trusty_autorijschool/" target="_blank" rel="noopener">${ic("ext")} Instagram</a><a class="btn sm" href="https://www.facebook.com/" target="_blank" rel="noopener">${ic("ext")} Facebook</a>
-         <button class="btn sm${c.posted?"":" primary"}" data-act="socialPosted">${c.posted?ic("check")+" Posted "+esc(niceDate(c.postedAt)):"Mark as posted"}</button></div>`
+       <div class="field"><label for="socY">Up / down</label><input type="range" id="socY" min="-1" max="1" step="0.01" value="${S.socialY}" data-in="socialY"></div></div>`:""}
+       <div class="field"><label for="socCap">Caption</label><textarea id="socCap" rows="6" data-in="socialCaption">${esc(cap)}</textarea><span class="hint">From your preset in Settings. Changes here are for this post only.</span></div>
+       ${HOST?(igReady
+          ? `<button class="btn primary" data-act="igReview" ${S.socialPhoto?"":"disabled"}>${ic("camera")} Review and post to Instagram</button><div class="small muted">Posting to @${esc(S.ig.username||"")}. You see the finished post before it goes online.</div>`
+          : `<div class="banner">Connect Instagram in <a href="#app-settings" data-act="nav" data-v="settings">Settings</a> to post straight from here.</div>`)
+        : `<div class="small muted">Automatic posting works in the Hostinger version. Here you can download the image and post it yourself.</div>`}
+       <div class="row"><button class="btn" data-act="socialDl" ${S.socialPhoto?"":"disabled"}>${ic("down")} Download image</button><button class="btn" data-act="socialCopy">${ic("copy")} Copy caption</button>
+         <button class="btn${c.posted?"":" ghost"}" data-act="socialPosted">${c.posted?ic("check")+" Posted "+esc(niceDate(c.postedAt)):"Mark as posted"}</button></div>
+       ${c.igPermalink?`<a class="small" href="${esc(c.igPermalink)}" target="_blank" rel="noopener">${ic("ext",'width="14" height="14"')} View the post on Instagram</a>`:""}`
       :`<div class="empty">Pick a client to build their post.</div>`}
-      <div class="card soft small"><b>Template:</b> ${k.templateId?"your uploaded Canva template is used.":"built-in template. Export your Canva design as a PNG with a transparent photo area and upload it in Settings to use it here."}</div>
+      <div class="card soft small"><b>Template:</b> ${k.templateId?"your uploaded template is used. Adjust the photo area and name in Settings.":"built-in Trusty template. Upload your own Canva design in Settings."}</div>
     </div>
     <div><canvas class="preview" id="socCanvas" width="1080" height="1350" aria-label="Post preview"></canvas></div>
    </div>`;
 }
+function igCard(){
+  const ig=S.ig;
+  if(!ig) return `<div class="card"><h3>Instagram</h3><div class="muted small" style="margin-top:6px">Checking the connection…</div></div>`;
+  if(ig.connected) return `<div class="card row between"><div><h3>Instagram connected</h3><div class="small muted">Posts go to <b>@${esc(ig.username||"")}</b>. You always see the finished post before it's published.</div></div><button class="btn danger" data-act="igDisconnect">Disconnect</button></div>`;
+  return `<div class="card grid" style="gap:12px"><h3>Connect Instagram</h3>
+    <div class="small muted">Paste the access token from your Meta app. The step-by-step guide is in <b>INSTAGRAM.md</b> (in the zip and on GitHub). The token is stored only on your server and never shown again.</div>
+    ${ig.error?`<div class="banner">${esc(ig.error)}</div>`:""}
+    ${ig.choices?`<div class="field"><label for="igPick">Which Instagram account?</label><select id="igPick">${ig.choices.map(x=>opt(x.id,"@"+x.username+" (page: "+x.page+")","")).join("")}</select></div>`:
+    `<div class="field"><label for="igTok">Access token</label><input type="password" id="igTok" autocomplete="off" placeholder="EAAG…"></div>`}
+    <div><button class="btn primary" data-act="igConnect">${ic("check")} ${ig.choices?"Use this account":"Connect"}</button></div></div>`;
+}
+async function hostApi(action, body, isForm){
+  const opts={method:body?"POST":"GET",credentials:"same-origin",headers:{"X-CSRF":HOST.csrf}};
+  if(body){ if(isForm) opts.body=body; else { opts.headers["Content-Type"]="application/json"; opts.body=JSON.stringify(body); } }
+  const r=await fetch((HOST.api||"api.php")+"?action="+action,opts);
+  if(r.status===401){ location.href="login.php"; throw new Error("Please log in again."); }
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error||"The server couldn't do that. Try again.");
+  return j;
+}
+async function loadIg(){ if(!HOST) return; try{ S.ig=await hostApi("ig_status"); }catch(e){ S.ig={connected:false,error:e.message}; } if(["social","settings"].includes(S.view)) render(); }
 function captionFor(c){ return fill(cfg().caption,{name:c.name, first:firstName(c.name), license:VEH[c.vehicle]?.lic||"B", vehicle:VEH[c.vehicle]?.name||"", transmission:VEH[c.vehicle]?.trans||"", instructor:c.instructor||""}); }
 let socialImgCache={};
 async function getImg(id){ if(!id) return null; if(socialImgCache[id]) return socialImgCache[id]; try{ const i=await loadImg(blobUrl(id)); socialImgCache[id]=i; return i; }catch(e){ return null; } }
-async function drawSocial(){
-  const cv=$("#socCanvas"); if(!cv) return; const g=cv.getContext("2d"); const W=1080,H=1350; const k=cfg(); const c=client(S.socialClient);
+async function paintPost(cv, c, photoId, adj, editBox){
+  const g=cv.getContext("2d"); const W=1080,H=1350; const k=cfg();
   try{ await document.fonts.load('800 80px "Nunito"'); }catch(e){}
-  const photo=await getImg(S.socialPhoto); const tpl=await getImg(k.templateId);
-  if(!$("#socCanvas")) return;
+  const photo=await getImg(photoId); const tpl=await getImg(k.templateId);
+  if(!cv.isConnected) return;
   g.clearRect(0,0,W,H);
-  const box = tpl? (k.photoBox||{x:0,y:0,w:W,h:H}) : {x:0,y:0,w:W,h:H};
-  g.fillStyle="#0B2A4A"; g.fillRect(0,0,W,H);
-  if(photo){
-    const s=Math.max(box.w/photo.naturalWidth, box.h/photo.naturalHeight)*S.socialZoom;
-    const dw=photo.naturalWidth*s, dh=photo.naturalHeight*s;
-    const dx=box.x+(box.w-dw)/2 + S.socialX*(dw-box.w)/2, dy=box.y+(box.h-dh)/2 + S.socialY*(dh-box.h)/2;
-    g.save(); g.beginPath(); g.rect(box.x,box.y,box.w,box.h); g.clip(); g.drawImage(photo,dx,dy,dw,dh); g.restore();
-  } else {
-    g.fillStyle="rgba(255,255,255,.5)"; g.font='600 40px "Nunito", sans-serif'; g.textAlign="center"; g.fillText("Upload a photo", W/2, H/2-120);
+  const over = tpl && k.tplMode==="over";
+  const box = tpl ? (editBox || k.photoBox || {x:0,y:0,w:W,h:H}) : {x:0,y:0,w:W,h:H};
+  const rad = tpl ? Math.max(0, num(k.photoRadius)) : 0;
+  const drawPhoto=()=>{
+    if(photo){
+      const s=Math.max(box.w/photo.naturalWidth, box.h/photo.naturalHeight)*(adj.zoom||1);
+      const dw=photo.naturalWidth*s, dh=photo.naturalHeight*s;
+      const dx=box.x+(box.w-dw)/2 + (adj.x||0)*(dw-box.w)/2, dy=box.y+(box.h-dh)/2 + (adj.y||0)*(dh-box.h)/2;
+      g.save(); if(rad) roundRect(g,box.x,box.y,box.w,box.h,Math.min(rad,box.w/2,box.h/2)); else { g.beginPath(); g.rect(box.x,box.y,box.w,box.h); } g.clip(); g.drawImage(photo,dx,dy,dw,dh); g.restore();
+    } else {
+      g.save(); g.fillStyle="rgba(47,116,208,.18)"; if(rad) roundRect(g,box.x,box.y,box.w,box.h,Math.min(rad,box.w/2,box.h/2)); else { g.beginPath(); g.rect(box.x,box.y,box.w,box.h); } g.fill();
+      g.fillStyle="rgba(255,255,255,.85)"; g.font='800 44px "Nunito", sans-serif'; g.textAlign="center"; g.textBaseline="middle"; g.fillText("Client photo", box.x+box.w/2, box.y+box.h/2); g.restore();
+    }
+  };
+  if(tpl){
+    g.fillStyle="#FFFFFF"; g.fillRect(0,0,W,H);
+    if(over){ g.drawImage(tpl,0,0,W,H); drawPhoto(); } else { drawPhoto(); g.drawImage(tpl,0,0,W,H); }
+    if(k.nameOn!==false && c){ drawName(g, c.name, k); }
+    else if(k.nameOn!==false && !c && editBox){ drawName(g, "Client Name", k); }
+    if(editBox){ g.save(); g.lineWidth=14; g.strokeStyle="#FFFFFF"; g.strokeRect(box.x,box.y,box.w,box.h); g.setLineDash([22,14]); g.lineWidth=8; g.strokeStyle="#121418"; g.strokeRect(box.x,box.y,box.w,box.h); g.setLineDash([]);
+      g.fillStyle="#FFFFFF"; g.fillRect(box.x+box.w-42,box.y+box.h-42,56,56); g.fillStyle="#2F74D0"; g.fillRect(box.x+box.w-34,box.y+box.h-34,40,40); g.restore(); }
+    return;
   }
-  if(tpl){ g.drawImage(tpl,0,0,W,H); return; }
   // built-in template (brand blue, matches the package posters)
+  g.fillStyle="#0B2A4A"; g.fillRect(0,0,W,H); drawPhoto();
   const gr=g.createLinearGradient(0,H*0.5,0,H); gr.addColorStop(0,"rgba(5,20,50,0)"); gr.addColorStop(1,"rgba(5,20,50,.92)"); g.fillStyle=gr; g.fillRect(0,0,W,H);
-  g.textAlign="left";
+  g.textAlign="left"; g.textBaseline="alphabetic";
   if(logoImg){ g.fillStyle="#fff"; roundRect(g,48,48,300,226,34); g.fill(); g.drawImage(logoImg,68,68,260,182); }
   g.fillStyle="#1B1C1F"; g.fillRect(0,H-26,W,26); g.fillStyle="#FFD900"; for(let x=10;x<W;x+=64) g.fillRect(x,H-15,36,5);
   g.fillStyle="#FFD900"; g.font='800 150px "Nunito", sans-serif'; g.fillText("PABIEN!",60,H-308);
@@ -1326,6 +1379,35 @@ async function drawSocial(){
   g.font='600 40px "Nunito", sans-serif'; g.fillStyle="rgba(255,255,255,.85)";
   g.fillText(c?`Rijbewijs ${VEH[c.vehicle]?.lic||"B"} · ${VEH[c.vehicle]?.trans||""}`:"Rijbewijs B",60,H-138);
   g.fillStyle="#2F74D0"; roundRect(g,60,H-104,420,56,28); g.fill(); g.fillStyle="#fff"; g.font='700 30px "Nunito", sans-serif'; g.fillText("@trusty_autorijschool",84,H-66);
+}
+function drawName(g, name, k){
+  const W=1080; let size=num(k.nameSize)||72; const y=num(k.nameY)||1220;
+  g.save(); g.textAlign="center"; g.textBaseline="middle"; g.fillStyle=k.nameColor||"#FFFFFF";
+  do { g.font=`900 ${size}px "Nunito", sans-serif`; if(g.measureText(name).width<=W-120) break; size-=4; } while(size>28);
+  g.shadowColor=(k.nameColor||"#FFFFFF").toUpperCase()==="#FFFFFF"?"rgba(0,0,0,.45)":"rgba(255,255,255,.4)"; g.shadowBlur=14; g.shadowOffsetY=3;
+  g.fillText(name, W/2, y); g.restore();
+}
+async function drawSocial(){
+  const cv=$("#socCanvas"); if(!cv) return;
+  await paintPost(cv, client(S.socialClient), S.socialPhoto, {zoom:S.socialZoom,x:S.socialX,y:S.socialY});
+}
+let TB=null; // template editor box while dragging
+async function drawTplEditor(){
+  const cv=$("#tplCanvas"); if(!cv) return; const k=cfg();
+  if(!TB) TB={...(k.photoBox||DEFAULTS.photoBox)};
+  await paintPost(cv, null, null, {}, TB);
+}
+async function analyzeTemplate(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await loadImg(url); const W=1080,H=1350; const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+    const g=cv.getContext("2d"); g.drawImage(img,0,0,W,H); const d=g.getImageData(0,0,W,H).data;
+    let x0=W,y0=H,x1=-1,y1=-1,count=0;
+    for(let y=0;y<H;y+=3) for(let x=0;x<W;x+=3){ if(d[(y*W+x)*4+3]<40){ count++; if(x<x0)x0=x; if(y<y0)y0=y; if(x>x1)x1=x; if(y>y1)y1=y; } }
+    const share=count/((W/3)*(H/3));
+    if(share>0.04 && x1>x0 && y1>y0) return {mode:"behind", box:{x:x0,y:y0,w:x1-x0+3,h:y1-y0+3}};
+    return {mode:"over", box:{x:140,y:170,w:800,h:800}};
+  } finally { URL.revokeObjectURL(url); }
 }
 function roundRect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function fitText(g,t,x,y,max,size){ let s=size; const fam=g.font.replace(/\d+px/,"{}"); while(s>30){ g.font=fam.replace("{}",s+"px"); if(g.measureText(t).width<=max) break; s-=4; } g.fillText(t,x,y); }
@@ -1361,10 +1443,21 @@ function vSettings(){
    <div class="row"><button class="btn primary" data-act="saveSettings">${ic("check")} Save settings</button></div>
   </form>
   <div class="card grid" style="gap:14px"><h3>Social post template</h3>
-    <div class="small muted">In Canva: open your template, make the photo area transparent (delete the photo), then Share → Download → PNG with <b>transparent background</b>, size 1080 × 1350. Upload it here and every client photo is placed behind it.</div>
-    <div class="row"><button class="btn" data-act="tplUpload" ${assets?"":"disabled"}>${ic("up")} ${k.templateId?"Replace template":"Upload template PNG"}</button>${k.templateId?`<button class="btn danger" data-act="tplRemove">Use built-in template</button>`:""}</div>
-    ${k.templateId?`<div class="grid g4">${["x","y","w","h"].map(f=>`<div class="field"><label for="pb_${f}">Photo area ${f.toUpperCase()}</label><input type="number" id="pb_${f}" value="${esc((k.photoBox||{})[f]??"")}" data-pb="${f}"></div>`).join("")}</div><div class="hint small muted">Pixels on the 1080 × 1350 canvas where the photo should sit. Default fills the whole post.</div><div><button class="btn sm" data-act="savePb">Save photo area</button></div>`:""}
+    <div class="small muted">In Canva: Share → Download → PNG, size 1080 × 1350. With Canva Pro you can tick <b>Transparent background</b> and delete the photo, then the photo is placed behind your design automatically. Without it, drag the blue box to where the photo should go.</div>
+    <div class="row"><button class="btn primary" data-act="tplUpload" ${assets?"":"disabled"}>${ic("up")} ${k.templateId?"Replace template":"Upload Canva template"}</button>${k.templateId?`<button class="btn danger" data-act="tplRemove">Use built-in template</button>`:""}</div>
+    ${k.templateId?`<div class="tpl-edit">
+      <div><canvas id="tplCanvas" class="preview" width="1080" height="1350" aria-label="Template editor: drag the blue box to place the photo"></canvas>
+       <div class="hint small muted" style="margin-top:6px">Drag the box to move it. Drag the blue corner to resize. Changes save when you let go.</div></div>
+      <div class="grid" style="gap:12px;align-content:start">
+       <div class="field"><label for="tplMode">Photo goes</label><select id="tplMode" data-change="tplSet" data-k="tplMode">${opt("behind","Behind the template (transparent area)",k.tplMode||"behind")}${opt("over","On top of the template",k.tplMode)}</select></div>
+       <div class="field"><label for="tplRad">Photo corners</label><select id="tplRad" data-change="tplSet" data-k="photoRadius">${[["0","Square"],["24","Slightly rounded"],["60","Rounded"],["400","Circle / pill"]].map(([v,l])=>opt(v,l,String(k.photoRadius??0))).join("")}</select></div>
+       <label class="toggle" for="tplName"><span><b>Print the client's name</b><br><span class="small muted">Added on the image automatically</span></span><input type="checkbox" id="tplName" data-change="tplSet" data-k="nameOn" ${k.nameOn!==false?"checked":""} style="width:22px;height:22px"></label>
+       <div class="grid g2"><div class="field"><label for="tplNY">Name height</label><input type="range" id="tplNY" min="60" max="1300" step="5" value="${esc(k.nameY??1220)}" data-change="tplSet" data-k="nameY"></div>
+       <div class="field"><label for="tplNC">Name colour</label><select id="tplNC" data-change="tplSet" data-k="nameColor">${[["#FFFFFF","White"],["#121418","Black"],["#2F74D0","Trusty blue"],["#FFD400","Yellow"]].map(([v,l])=>opt(v,l,k.nameColor||"#FFFFFF")).join("")}</select></div></div>
+       <div class="field"><label for="tplNS">Name size</label><input type="range" id="tplNS" min="36" max="140" step="2" value="${esc(k.nameSize??72)}" data-change="tplSet" data-k="nameSize"></div>
+      </div></div>`:""}
   </div>
+  ${HOST?igCard():""}
   <div class="card grid" style="gap:14px"><h3>Backup</h3>
     <div class="small muted">Download all clients, payments, invoices, lessons, expenses and settings as one file. Keep a copy every week. Restore adds the records from a backup file to this app; use it to move to another host. Photos are not included in the file.</div>
     <div class="row"><button class="btn dark" data-act="backupExport">${ic("down")} Download backup</button><button class="btn" data-act="backupImport">${ic("up")} Restore from backup</button></div>
@@ -1766,6 +1859,29 @@ const ACT = {
   expDel: async ds=>{ const e=S.expenses.find(x=>x.id===ds.id); if(await safe(async()=>{ await remove("expenses",e.id); if(e.fileId&&assets) try{ await assets.delete(e.fileId);}catch(x){} },"Expense deleted")) closeModal(); },
   socialFor: ds=>{ const c=client(ds.id); S.socialClient=c.id; S.socialPhoto=c.photoId||null; S.socialMode="all"; S.socialZoom=1; S.socialX=0; S.socialY=0; go("social"); },
   socialMode: ds=>{ S.socialMode=ds.v; render(); },
+  igReview: ()=>{ const cv=$("#socCanvas"); const c=client(S.socialClient); if(!cv||!c) return;
+    const cap=$("#socCap").value; const url=cv.toDataURL("image/jpeg",0.92);
+    openModal(`${head("Check the post", "This is exactly what goes on @"+esc(S.ig.username||""))}
+      <div class="ig-review"><img src="${url}" alt="Finished post for ${esc(c.name)}"><div class="grid" style="gap:12px;align-content:start">
+       <div class="field"><label for="igCap">Caption</label><textarea id="igCap" rows="9">${esc(cap)}</textarea><span class="hint">${cap.length} / 2200 characters</span></div>
+       <div id="igMsg"></div>
+       <div class="row between"><button class="btn ghost" data-act="close">Not yet</button><button class="btn primary" data-act="igPost">${ic("camera")} Post now</button></div></div></div>`, true); },
+  igPost: async (ds,el)=>{ const cv=$("#socCanvas"); const c=client(S.socialClient); const cap=$("#igCap").value.slice(0,2200);
+    el.disabled=true; el.innerHTML="Posting… this can take up to a minute";
+    try{
+      const blob=await new Promise(r=>cv.toBlob(r,"image/jpeg",0.92));
+      const fd=new FormData(); fd.append("image",blob,"post.jpg"); fd.append("caption",cap); fd.append("clientId",c.id);
+      const r=await hostApi("ig_post",fd,true);
+      await patch("clients",c.id,{posted:true,postedAt:today(),igPermalink:r.permalink||"",igMediaId:r.id||""});
+      openModal(`${head("Posted!")}<div class="ok-big">${ic("check",'width="28" height="28"')}<div><b>${esc(firstName(c.name))}'s post is live on Instagram.</b><div class="small muted">The client is marked as posted.</div></div></div>${r.permalink?`<a class="btn primary" href="${esc(r.permalink)}" target="_blank" rel="noopener">${ic("ext")} Open the post</a>`:""}`);
+    }catch(e){ const m=$("#igMsg"); if(m) m.innerHTML=`<div class="banner">${esc(e.message)}</div>`; el.disabled=false; el.innerHTML=ic("camera")+" Try again"; } },
+  igConnect: async (ds,el)=>{ const pick=$("#igPick"); const tok=$("#igTok");
+    const body= pick ? {ig_user_id:pick.value, choose:true} : {token:(tok&&tok.value||"").trim()};
+    if(!pick && !body.token) return toast("Paste the access token first");
+    el.disabled=true; try{ S.ig=await hostApi("ig_connect",body); }catch(e){ S.ig={connected:false,error:e.message}; } render(); },
+  igDisconnect: async ()=>{ try{ await hostApi("ig_disconnect",{}); S.ig={connected:false}; toast("Instagram disconnected"); }catch(e){ toast(e.message); } render(); },
+  passedPhoto: async ds=>{ const f=await pickFile("image/*"); if(!f) return; toast("Uploading…");
+    await safe(async()=>{ const r=await uploadFile(f,2000); await patch("clients",ds.id,{photoId:r.id}); S.socialClient=ds.id; S.socialPhoto=r.id; S.socialZoom=1;S.socialX=0;S.socialY=0; S.socialCaption=null; closeModal(); go("social"); },"Photo added · check the post"); },
   socialPhoto: async ()=>{ const f=await pickFile("image/*"); if(!f) return; toast("Uploading…"); await safe(async()=>{ const r=await uploadFile(f,2000); S.socialPhoto=r.id; S.socialZoom=1;S.socialX=0;S.socialY=0; const c=client(S.socialClient); if(c) await patch("clients",c.id,{photoId:r.id}); render(); },"Photo added"); },
   socialUseSaved: ()=>{ S.socialPhoto=client(S.socialClient).photoId; render(); },
   socialDl: async ()=>{ const cv=$("#socCanvas"); const c=client(S.socialClient); cv.toBlob(b=>{ if(b) saveFile(`Post ${c?c.name:"client"}.png`, b); else toast("Couldn't create the image."); },"image/png"); },
@@ -1774,7 +1890,10 @@ const ACT = {
   saveSettings: async ()=>{ const v=formVals($("#setForm")); const prices={}; Object.keys(VEH).forEach(k=>prices[k]=[0,1,2,3].map(i=>num(v[`p_${k}_${i}`])));
     const p={business:v.business,phone:v.phone,address:v.address,email:v.email,kvk:v.kvk,crib:v.crib,bank:v.bank,invoicePrefix:(v.invoicePrefix||"TA").trim(),obRate:num(v.obRate),obBasis:v.obBasis,reminder:v.reminder,caption:v.caption,prices};
     await safe(()=>saveSettings(p),"Settings saved"); },
-  tplUpload: async ()=>{ const f=await pickFile("image/png"); if(!f) return; toast("Uploading template…"); await safe(async()=>{ const r=await assets.upload(f,{type:"image/png"}); await saveSettings({templateId:r.id, photoBox:cfg().photoBox||DEFAULTS.photoBox}); },"Template saved"); },
+  tplUpload: async ()=>{ const f=await pickFile("image/png,image/jpeg"); if(!f) return; toast("Uploading template…");
+    let info; try{ info=await analyzeTemplate(f); }catch(e){ return toast("That image couldn't be read. Use a PNG or JPG."); }
+    await safe(async()=>{ const r=await assets.upload(f,{type:f.type||"image/png"}); TB=null; await saveSettings({templateId:r.id, photoBox:info.box, tplMode:info.mode, nameOn:true, nameY:1220}); },
+      info.mode==="behind"?"Template saved · photo area found automatically":"Template saved · drag the blue box to where the photo goes"); },
   tplRemove: ()=> safe(()=>saveSettings({templateId:null}),"Using built-in template"),
   backupExport: ()=>{ const out={app:"trusty-ofisina",version:1,exportedAt:new Date().toISOString(),settings:S.settings||{}}; COLS.forEach(c=>out[c]=S[c]);
     saveFile(`Trusty backup ${today()}.json`, JSON.stringify(out,null,1)); },
@@ -1793,6 +1912,21 @@ const ACT = {
 function lessonsForSchedule(){ return S.lessons.filter(l=>l.date===S.day&&l.status!=="cancelled"&&(S.dayInst==="all"||l.instructor===S.dayInst)).sort((a,b)=>(a.time||"").localeCompare(b.time||"")); }
 async function copy(t,msg){ try{ await navigator.clipboard.writeText(t); toast(msg); }catch(e){ openModal(`${head("Copy this text")}<textarea id="cpy" rows="10" readonly>${esc(t)}</textarea>`); const a=$("#cpy"); a.focus(); a.select(); } }
 
+/* template editor: drag the photo box on #tplCanvas */
+(function(){ let drag=null; const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+  const pt=(cv,e)=>{ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*1080/r.width, y:(e.clientY-r.top)*1350/r.height}; };
+  document.addEventListener("pointerdown",e=>{ const cv=e.target.closest&&e.target.closest("#tplCanvas"); if(!cv) return; e.preventDefault();
+    const p=pt(cv,e); const b={...(TB||cfg().photoBox||DEFAULTS.photoBox)}; TB={...b};
+    const corner=Math.abs(p.x-(b.x+b.w))<80&&Math.abs(p.y-(b.y+b.h))<80, inside=p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h;
+    drag={mode:corner?"resize":inside?"move":"new",sx:p.x,sy:p.y,b};
+    if(drag.mode==="new"){ TB={x:p.x,y:p.y,w:60,h:60}; drag.b={...TB}; drag.mode="resize"; }
+    try{ cv.setPointerCapture(e.pointerId); }catch(x){} });
+  document.addEventListener("pointermove",e=>{ if(!drag) return; const cv=$("#tplCanvas"); if(!cv) return; const p=pt(cv,e), dx=p.x-drag.sx, dy=p.y-drag.sy, b=drag.b;
+    TB = drag.mode==="move" ? {...b,x:clamp(b.x+dx,-b.w+60,1020),y:clamp(b.y+dy,-b.h+60,1290)} : {x:b.x,y:b.y,w:clamp(b.w+dx,60,1080-b.x+200),h:clamp(b.h+dy,60,1350-b.y+200)};
+    drawTplEditor(); });
+  const end=()=>{ if(!drag) return; drag=null; const b={x:Math.round(TB.x),y:Math.round(TB.y),w:Math.round(TB.w),h:Math.round(TB.h)}; safe(()=>saveSettings({photoBox:b}),"Photo area saved"); };
+  document.addEventListener("pointerup",end); document.addEventListener("pointercancel",end);
+})();
 document.addEventListener("pointerdown", e=>{
   const el=e.target.closest(".btn,.chip,.icon-btn,.item,.pick,.nav-btn,.alert,.toggle,.thumb,.wday,.bottom button"); if(!el||matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const r=el.getBoundingClientRect(), sz=Math.max(r.width,r.height)*2.2, sp=document.createElement("span");
@@ -1808,6 +1942,7 @@ document.addEventListener("input", e=>{
   const k=e.target.dataset.in; if(!k) return;
   if(k==="q"){ S.q=e.target.value; const l=$("#clist"), list=filteredClients(); if(l && list.length) l.innerHTML=list.map(clientRow).join(""); else render(); }
   else if(k==="wizPaid") wizLeft();
+  else if(k==="socialCaption"){ S.socialCaption=e.target.value; S.socialCaptionFor=S.socialClient; }
   else if(k.startsWith("social")){ S[k]=Number(e.target.value); drawSocial(); }
 });
 document.addEventListener("change", e=>{
@@ -1815,8 +1950,12 @@ document.addEventListener("change", e=>{
   const k=e.target.dataset.change; if(!k) return; const v=e.target.value, id=e.target.dataset.id;
   if(k==="day"&&v){ S.day=v; render(); }
   else if(k==="examDate") safe(()=>patch("clients",id,{examDate:v}),"Exam date saved");
-  else if(k==="examResult"){ const p={examResult:v}; if(v==="passed") p.status="passed"; else if((client(id)?.status)==="passed") p.status="active"; safe(()=>patch("clients",id,p), v==="passed"?"Pabien! Marked as passed. Make their social post next.":"Saved"); }
-  else if(k==="socialClient"){ S.socialClient=v||null; const c=client(v); S.socialPhoto=c?.photoId||null; S.socialZoom=1;S.socialX=0;S.socialY=0; render(); }
+  else if(k==="examResult"){ const p={examResult:v}; if(v==="passed") p.status="passed"; else if((client(id)?.status)==="passed") p.status="active";
+    safe(()=>patch("clients",id,p), v==="passed"?"":"Saved").then(ok=>{ if(ok&&v==="passed"){ const c=client(id);
+      openModal(`${head("Pabien, "+esc(firstName(c?.name))+"!", "Marked as passed")}<div>Upload the photo from the exam. It's placed in your template with the caption, and you check it before it's posted.</div>
+        <div class="row between"><button class="btn ghost" data-act="close">Later</button><button class="btn primary" data-act="passedPhoto" data-id="${esc(id)}" ${assets?"":"disabled"}>${ic("camera")} Upload photo</button></div>`); } }); }
+  else if(k==="tplSet"){ const key=e.target.dataset.k; const val= e.target.type==="checkbox"? e.target.checked : (["photoRadius","nameY","nameSize"].includes(key)? num(v) : v); safe(()=>saveSettings({[key]:val})); }
+  else if(k==="socialClient"){ S.socialCaption=null; S.socialClient=v||null; const c=client(v); S.socialPhoto=c?.photoId||null; S.socialZoom=1;S.socialX=0;S.socialY=0; render(); }
   else if(k==="lessonClient"){ const c=client(v); if(c){ if($("#l_v")) $("#l_v").value=c.vehicle; $("#l_i").value=c.instructor||$("#l_i").value; } lessonCheck(); }
   else if(k==="lessonCheck") lessonCheck();
 });
