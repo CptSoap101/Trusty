@@ -690,6 +690,10 @@ main{padding-top:24px}
 @media (max-width:700px){.ig-review{grid-template-columns:minmax(0,1fr)}}
 .ok-big{display:flex;gap:14px;align-items:center;padding:16px;border-radius:18px;background:var(--good-soft);color:var(--good)}
 .ok-big b{color:var(--ink)}
+
+.xrows{display:flex;flex-direction:column;gap:10px}
+.xrow{display:grid;grid-template-columns:minmax(0,1.3fr) 110px 130px;gap:12px;align-items:end;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:#fff}
+@media (max-width:560px){.xrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.xrow>div:first-child{grid-column:1/-1}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -758,7 +762,8 @@ const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const DEFAULTS = {
   business:"Trusty Autorijschool", address:"Curaçao", phone:"", email:"", crib:"", kvk:"", bank:"",
   obRate:6, obBasis:"cash", invoicePrefix:"TA",
-  prices:{accent:[450,650,875,1100], versa:[400,575,775,950], moto:[375,525,725,900]},
+  prices:{accent:[500,700,925,1150], versa:[450,625,825,1000], moto:[425,575,775,950]},
+  extraRates:{accent:70, versa:65, moto:""}, sundayCharge:20, holidayCharge:20, bookPrice:25,
   caption:"Pabien {name}! 🎉 Bo a pasa bo eksamen pa rijbewijs {license}. Nos ta orguyoso di bo! 🚗\n\nBo tambe ke haña bo rijbewijs? Manda nos un mensahe.\n\n#trustyautorijschool #rijbewijs #curacao",
   reminder:"Bon dia {name}! Rekordatorio di bo les di manehá: {date} na {time} ku {instructor} ({vehicle}). Te ora! – Trusty Autorijschool",
   templateId:null, photoBox:{x:0,y:0,w:1080,h:1350}
@@ -832,7 +837,12 @@ const S = {
   q:"", cfilter:"active", day: today(), dayInst:"all", year:new Date().getFullYear(), month:new Date().getMonth(),
   expMonth: today().slice(0,7), socialClient:null, socialPhoto:null, socialZoom:1, socialX:0, socialY:0, socialMode:"passed"
 };
-const cfg = () => { const s=S.settings||{}; return {...DEFAULTS,...s, prices:{...DEFAULTS.prices,...(s.prices||{})}, extraRates:{...(s.extraRates||{})}}; };
+// Price lists saved before November 2026 are replaced by the current ones (the app's old defaults).
+const OLD_PRICES = {accent:[450,650,875,1100], versa:[400,575,775,950], moto:[375,525,725,900]};
+const cfg = () => { const s=S.settings||{}; const sp=s.prices||{}; const prices={};
+  Object.keys(DEFAULTS.prices).forEach(v=>{ prices[v] = (!sp[v] || JSON.stringify(sp[v])===JSON.stringify(OLD_PRICES[v])) ? DEFAULTS.prices[v] : sp[v]; });
+  const xr={...DEFAULTS.extraRates}; Object.entries(s.extraRates||{}).forEach(([k,v])=>{ if(v!==""&&v!=null) xr[k]=v; });
+  return {...DEFAULTS,...s, prices, extraRates:xr}; };
 const client = id => S.clients.find(c=>c.id===id);
 const instOf = (c) => c?.instructor || "";
 
@@ -1146,10 +1156,14 @@ function vClient(){
    <div class="grid g4">
      <button class="btn primary" data-act="payNew" data-id="${esc(c.id)}">${ic("coin")} Add payment</button>
      <button class="btn" data-act="lessonNew" data-id="${esc(c.id)}">${ic("cal")} Schedule lesson</button>
-     <button class="btn" data-act="extraNew" data-id="${esc(c.id)}">${ic("plus")} Extra lessons</button>
+     <button class="btn" data-act="extraNew" data-id="${esc(c.id)}">${ic("plus")} Extra costs</button>
      <button class="btn" data-act="socialFor" data-id="${esc(c.id)}">${ic("camera")} Social post</button>
    </div>
 
+   <div class="card id-docs"><div class="row between"><div><h3>ID document</h3><div class="small muted">Photos or PDF of ${esc(firstName(c.name))}'s ID, for printing and the exam date. Only people with access to this app can see them.</div></div>
+     <button class="btn" data-act="idUpload" data-id="${esc(c.id)}" ${assets?"":"disabled"}>${ic("id")} Upload ID</button></div>
+     ${(c.idDocs||[]).length?`<div class="thumbs" style="margin-top:14px">${c.idDocs.map((d,i)=>`<button class="thumb" data-act="idView" data-id="${esc(c.id)}" data-v="${i}"><div class="ph">${String(d.type).includes("pdf")?ic("file",'width="36" height="36"'):`<img src="${blobUrl(esc(d.fileId))}" alt="ID ${i+1}" loading="lazy">`}</div><div class="meta"><b>${esc(d.label||("ID "+(i+1)))}</b><span class="muted small">${esc(niceDate(d.at))}</span></div></button>`).join("")}</div>`:`<div class="empty" style="margin-top:14px">No ID uploaded yet. Upload the front and back.</div>`}
+   </div>
    <div class="grid g2 stack">
      <button class="toggle" data-act="toggleId" data-id="${esc(c.id)}"><span><b>ID printed</b><br><span class="small muted">${c.idPrinted?"Printed on "+esc(niceDate(c.idPrintedAt)):"Needed to request the exam date"}</span></span><span class="switch${c.idPrinted?" on":""}"></span></button>
      <div class="toggle" style="flex-wrap:wrap"><span><b>Exam</b><br><span class="small muted">${c.examDate?esc(longDate(c.examDate)):"No date yet"}</span></span>
@@ -1432,10 +1446,15 @@ function vSettings(){
      <div class="field"><label for="s_ob">OB rate (%)</label><input type="number" id="s_ob" name="obRate" step="0.1" min="0" value="${esc(k.obRate)}"><span class="hint">Prices are treated as including OB. Set 0 to hide OB.</span></div>
      <div class="field"><label for="s_basis">Count omzet when</label><select id="s_basis" name="obBasis">${opt("cash","Payment is received (cash basis)",k.obBasis)}${opt("invoice","Invoice is issued (invoice basis)",k.obBasis)}</select></div>
     </div></div>
-   <div class="card grid" style="gap:14px"><h3>Package prices (XCG)</h3>
+   <div class="card grid" style="gap:14px"><h3>Package prices and additional costs (XCG)</h3>
     <div class="table-wrap"><table><thead><tr><th>Vehicle</th>${PKG_LESSONS.map((n,i)=>`<th>Pakete ${i+1} · ${n}x</th>`).join("")}<th>Extra lesson (each)</th></tr></thead><tbody>
     ${Object.keys(VEH).map(v=>`<tr><td><b>${esc(VEH[v].name)}</b><div class="small muted">${esc(VEH[v].trans)} · ${esc(VEH[v].lic)}</div></td>${k.prices[v].map((p,i)=>`<td><input type="number" id="p_${v}_${i}" name="p_${v}_${i}" value="${esc(p)}" style="width:110px" aria-label="${esc(VEH[v].name)} Pakete ${i+1}"></td>`).join("")}<td><input type="number" id="x_${v}" name="x_${v}" value="${esc(k.extraRates[v]??"")}" placeholder="Set rate" min="0" step="0.01" style="width:110px" aria-label="${esc(VEH[v].name)} extra lesson rate"></td></tr>`).join("")}
-    </tbody></table></div><div class="hint small muted">The extra lesson rate is the price per lesson when a client buys lessons on top of their package.</div></div>
+    </tbody></table></div><div class="hint small muted">The extra lesson rate is the price per lesson when a client buys lessons on top of their package.</div>
+    <div class="grid g3 stack">
+     <div class="field"><label for="s_sun">Sunday add charge (per lesson)</label><input type="number" id="s_sun" name="sundayCharge" min="0" step="0.01" value="${esc(k.sundayCharge)}"></div>
+     <div class="field"><label for="s_hol">Holiday add charge (per lesson)</label><input type="number" id="s_hol" name="holidayCharge" min="0" step="0.01" value="${esc(k.holidayCharge)}"></div>
+     <div class="field"><label for="s_book">Hardcopy book</label><input type="number" id="s_book" name="bookPrice" min="0" step="0.01" value="${esc(k.bookPrice)}"></div>
+    </div></div>
    <div class="card grid" style="gap:14px"><h3>Messages</h3>
     <div class="field"><label for="s_rem">WhatsApp lesson reminder</label><textarea id="s_rem" name="reminder">${esc(k.reminder)}</textarea><span class="hint">Placeholders: {name} {date} {time} {instructor} {vehicle}</span></div>
     <div class="field"><label for="s_cap">Social media caption</label><textarea id="s_cap" name="caption" rows="6">${esc(k.caption)}</textarea><span class="hint">Placeholders: {name} {first} {license} {vehicle} {transmission} {instructor}</span></div>
@@ -1502,6 +1521,7 @@ function wizard(){
        <div class="field"><label for="w_inst">Instructor</label><select id="w_inst" name="instructor">${INSTRUCTORS.map(n=>opt(n,n,d.instructor)).join("")}</select></div>
        <div class="field"><label for="w_disc">Discount (optional, XCG)</label><input type="number" id="w_disc" name="discount" min="0" step="0.01" value="${esc(d.discount??"")}" placeholder="0.00" data-in="wizPaid"></div>
       </div>
+      <label class="toggle" for="w_book"><span><b>Hardcopy book</b><br><span class="small muted">Adds ${money(k.bookPrice)} to the invoice</span></span><input type="checkbox" id="w_book" name="book" ${d.book?"checked":""} data-change="wizBook" style="width:22px;height:22px"></label>
       <div class="wiz-sched"><div><b>Put them on the schedule</b><div class="small muted">Optional. Leave the date empty to schedule later.</div></div>
        <div class="grid g3 stack">
         <div class="field"><label for="w_fd">First lesson date</label><input type="date" id="w_fd" name="firstDate" value="${esc(d.firstDate||"")}"></div>
@@ -1515,7 +1535,7 @@ function wizard(){
     wizLeft();
   }
 }
-function wizLeft(){ const d=W.data, k=cfg(); const el=$("#w_left"); if(!el) return; const price=k.prices[d.vehicle][d.pkg]; el.textContent=money(price-num($("#w_disc").value)-num($("#w_paid").value)); }
+function wizLeft(){ const d=W.data, k=cfg(); const el=$("#w_left"); if(!el) return; const price=k.prices[d.vehicle][d.pkg]; const book=$("#w_book")&&$("#w_book").checked?num(k.bookPrice):0; el.textContent=money(price+book-num($("#w_disc").value)-num($("#w_paid").value)); }
 async function wizSave(btn){
   const d=W.data, k=cfg(); Object.assign(d, formVals($("#wf")));
   const price=num(k.prices[d.vehicle][d.pkg]), disc=num(d.discount), paid=num(d.paid);
@@ -1529,8 +1549,10 @@ async function wizSave(btn){
     await put("clients", id, c);
     const lines=[{desc:`Pakete ${d.pkg+1} - ${PKG_LESSONS[d.pkg]}x les praktiko, ${VEH[d.vehicle].name} (${VEH[d.vehicle].trans})`, amount:price, sub:INCLUDED.join(" · ")}];
     if(disc>0) lines.push({desc:"Korting / discount", amount:-disc});
+    const book = d.book ? num(k.bookPrice) : 0;
+    if(book>0) lines.push({desc:"Hardcopy book", amount:book});
     await createInvoice(c, lines, d.date||today());
-    if(paid>0) await recordPayment(c, paid, d.date||today(), d.method||"Cash", "", {total:price-disc, paid:0});
+    if(paid>0) await recordPayment(c, paid, d.date||today(), d.method||"Cash", "", {total:price-disc+book, paid:0});
     if(d.firstDate){ const lid=uid(); await put("lessons",lid,{id:lid,type:"practical",clientId:id,clientIds:[id],date:d.firstDate,time:d.firstTime||"08:00",duration:60,instructor:d.instructor,vehicle:d.vehicle,note:"",status:"planned",reminded:false,createdAt:new Date().toISOString(),by:S.me||""}); }
     S.clientId=id;
   }, "Client saved with invoice");
@@ -1577,27 +1599,40 @@ function payNew(id){
 }
 function extraCount(c){ return S.invoices.filter(i=>i.clientId===c.id&&i.type==="invoice"&&!i.void).reduce((a,i)=>a+num(i.extraLessons),0); }
 function extraNew(id){
-  const c=client(id); const rate=cfg().extraRates[c.vehicle]; const t=totals(c);
-  openModal(`${head("Extra lessons", esc(c.name)+" · "+esc(VEH[c.vehicle]?.name||"")+" · open balance "+money(Math.max(0,t.balance)))}
+  const c=client(id); const k=cfg(); const rate=k.extraRates[c.vehicle]; const t=totals(c);
+  const row=(n,label,sub,val,price,priceName)=>`<div class="xrow"><div><b>${label}</b><div class="small muted">${sub}</div></div>
+     <div class="field"><label for="ex_${n}">Number</label><input type="number" id="ex_${n}" name="${n}" min="0" max="50" step="1" value="${val}" data-in="extraCalc"></div>
+     <div class="field"><label for="ex_${priceName}">Price each</label><input type="number" id="ex_${priceName}" name="${priceName}" min="0" step="0.01" value="${esc(price??"")}" placeholder="0.00" data-in="extraCalc"></div></div>`;
+  openModal(`${head("Extra costs", esc(c.name)+" · "+esc(VEH[c.vehicle]?.name||"")+" · open balance "+money(Math.max(0,t.balance)))}
    <form id="exf" class="grid" style="gap:14px" onsubmit="return false">
-    <div class="grid g3 stack">
-     <div class="field"><label for="ex_n">Number of extra lessons</label><input type="number" id="ex_n" name="n" min="1" max="50" step="1" value="1" data-in="extraCalc"></div>
-     <div class="field"><label for="ex_r">Rate per lesson (XCG)</label><input type="number" id="ex_r" name="rate" min="0" step="0.01" value="${esc(rate??"")}" placeholder="0.00" data-in="extraCalc">${rate===""||rate==null?`<span class="hint">Tip: save your rate in Settings so it fills in by itself.</span>`:""}</div>
-     <div class="field"><label for="ex_d">Date</label><input type="date" id="ex_d" name="date" value="${today()}"></div>
+    <div class="xrows">
+     ${row("n","Extra lessons","Added to "+esc(firstName(c.name))+"'s lessons",1,rate,"rate")}
+     ${row("sun","Sunday add charge","Per lesson on a Sunday",0,k.sundayCharge,"sunRate")}
+     ${row("hol","Holiday add charge","Per lesson on a holiday",0,k.holidayCharge,"holRate")}
+     ${row("book","Hardcopy book","",0,k.bookPrice,"bookRate")}
     </div>
-    <div class="grid g2 stack">
-     <div class="field"><label for="ex_p">Paid now (optional, XCG)</label><input type="number" id="ex_p" name="paid" min="0" step="0.01" placeholder="0.00" data-in="extraCalc"></div>
+    <div class="grid g3 stack">
+     <div class="field"><label for="ex_d">Date</label><input type="date" id="ex_d" name="date" value="${today()}"></div>
+     <div class="field"><label for="ex_p">Paid now (optional)</label><input type="number" id="ex_p" name="paid" min="0" step="0.01" placeholder="0.00" data-in="extraCalc"></div>
      <div class="field"><label for="ex_m">Payment method</label><select id="ex_m" name="method">${METHODS.map(m=>opt(m,m,"Cash")).join("")}</select></div>
     </div>
-    <div class="card night"><div class="row between"><span class="muted">Extra lessons total</span><b class="big orange num" id="ex_total" style="font-size:26px">${money(0)}</b></div>
+    <div class="card night"><div class="row between"><span class="muted">Total extra costs</span><b class="big orange num" id="ex_total" style="font-size:26px">${money(0)}</b></div>
      <div class="row between small" style="margin-top:8px"><span class="muted">Open balance after this</span><span class="num" id="ex_after">${money(Math.max(0,t.balance))}</span></div></div>
-    <div class="small muted">Creates an invoice for the extra lessons and adds them to ${esc(firstName(c.name))}'s lessons. A payment gets its own receipt.</div>
-    <div class="row between"><button class="btn ghost" data-act="chargeNew" data-id="${esc(c.id)}">Other charge (exam re-take…)</button><button class="btn primary" data-act="saveExtra" data-id="${esc(c.id)}">${ic("check")} Add extra lessons</button></div>
-   </form>`);
+    <div class="small muted">Creates one invoice with a line for each cost. A payment gets its own receipt.</div>
+    <div class="row between"><button class="btn ghost" data-act="chargeNew" data-id="${esc(c.id)}">Other charge…</button><button class="btn primary" data-act="saveExtra" data-id="${esc(c.id)}">${ic("check")} Add to invoice</button></div>
+   </form>`, true);
   extraCalc();
 }
+function extraLines(v, c){
+  const L=[]; const add=(n,rate,desc)=>{ n=Math.max(0,Math.round(num(n))); rate=num(rate); if(n>0&&rate>0) L.push({desc:(n>1?n+"x ":"")+desc, amount:Math.round(n*rate*100)/100, sub:`${n} × ${money(rate)}`, n}); };
+  add(v.n, v.rate, "extra les praktiko - "+(VEH[c.vehicle]?.name||""));
+  add(v.sun, v.sunRate, "Sunday add charge");
+  add(v.hol, v.holRate, "Holiday add charge");
+  add(v.book, v.bookRate, "Hardcopy book");
+  return L;
+}
 function extraCalc(){ const f=$("#exf"); if(!f) return; const c=client($("[data-act=saveExtra]").dataset.id); const v=formVals(f);
-  const total=Math.max(0,Math.round(num(v.n)))*num(v.rate); const t=totals(c);
+  const total=extraLines(v,c).reduce((a,l)=>a+l.amount,0); const t=totals(c);
   $("#ex_total").textContent=money(total); $("#ex_after").textContent=money(Math.max(0,t.balance+total-num(v.paid))); }
 function chargeNew(id){
   const c=client(id);
@@ -1639,6 +1674,7 @@ function lessonModal(clientId, lessonId, draft){
      <div class="field"><label for="l_du">Minutes</label><select id="l_du" name="duration" data-change="lessonCheck">${[45,60,90,120].map(m=>opt(m,m+" min",d.duration||60)).join("")}</select></div>
      <div class="field"><label for="l_i">Instructor</label><select id="l_i" name="instructor" data-change="lessonCheck">${INSTRUCTORS.map(n=>opt(n,n,d.instructor)).join("")}</select></div>
      ${theory?"":`<div class="field"><label for="l_v">Vehicle</label><select id="l_v" name="vehicle" data-change="lessonCheck">${Object.entries(VEH).map(([v,x])=>opt(v,x.name,d.vehicle)).join("")}</select></div>`}
+     ${!l&&!theory?`<div class="field"><label for="l_sc">Add charge</label><select id="l_sc" name="surcharge" data-change="lessonSurcharge">${opt("","None",d.surcharge??(parseYmd(d.date).getDay()===0?"sunday":""))}${opt("sunday","Sunday +"+money(cfg().sundayCharge),d.surcharge??(parseYmd(d.date).getDay()===0?"sunday":""))}${opt("holiday","Holiday +"+money(cfg().holidayCharge),d.surcharge)}</select><span class="hint">Added to the client's invoice when you save.</span></div>`:""}
      ${l?`<div class="field"><label for="l_s">Status</label><select id="l_s" name="status">${opt("planned","Planned",d.status)}${opt("done","Done",d.status)}${opt("noshow","No-show",d.status)}${opt("cancelled","Cancelled",d.status)}</select></div>`:`<div class="field"><label for="l_rep">Repeat weekly</label><select id="l_rep" name="repeat">${[1,2,3,4,6,8].map(n=>opt(n,n===1?"Just once":n+" weeks",d.repeat||1)).join("")}</select></div>`}
     </div>
     <div class="field"><label for="l_n">${theory?"Location / topic":"Note / pickup location"}</label><input type="text" id="l_n" name="note" value="${esc(d.note)}"></div>
@@ -1693,7 +1729,7 @@ function expView(id){
 function pdfBase(title){
   const {jsPDF}=window.jspdf; const d=new jsPDF({unit:"mm",format:"a4"}); const k=cfg();
   d.setFillColor(27,28,31); d.rect(0,0,210,7,"F"); d.setFillColor(255,217,0); for(let x=4;x<210;x+=12) d.rect(x,3.1,7,0.9,"F");
-  if(logoData){ try{ d.addImage(logoData,"PNG",18,12,34,23.8); }catch(e){} }
+  if(logoData){ try{ d.addImage(logoData,"PNG",18,12,34,23.8,"logo","FAST"); }catch(e){} }
   d.setFont("helvetica","bold"); d.setFontSize(11); d.setTextColor(17,20,24); d.text(pdfSafe(k.business||"Trusty Autorijschool"),18,logoData?42:24);
   d.setFont("helvetica","normal"); d.setFontSize(9); d.setTextColor(102,112,125);
   const info=[k.address,k.phone,k.email,k.kvk?"KvK "+k.kvk:"",k.crib?"CRIB "+k.crib:""].filter(Boolean);
@@ -1811,15 +1847,15 @@ const ACT = {
   payDel: async ds=>{ const p=S.payments.find(x=>x.id===ds.id); if(await safe(async()=>{ await remove("payments",p.id); if(p.receiptId) await remove("invoices",p.receiptId); },"Payment deleted")) closeModal(); },
   chargeNew: ds=> chargeNew(ds.id),
   extraNew: ds=> extraNew(ds.id),
-  saveExtra: async (ds,el)=>{ const v=formVals($("#exf")); const n=Math.round(num(v.n)), rate=num(v.rate), paid=Math.round(num(v.paid)*100)/100;
-    if(n<1) return toast("Enter how many extra lessons"); if(rate<=0) return toast("Enter the rate per lesson");
-    const c=client(ds.id); const amount=Math.round(n*rate*100)/100; const date=v.date||today(); el.disabled=true;
+  saveExtra: async (ds,el)=>{ const v=formVals($("#exf")); const c=client(ds.id); const L=extraLines(v,c); const paid=Math.round(num(v.paid)*100)/100;
+    if(!L.length) return toast("Enter a number and price for at least one cost");
+    const n=Math.max(0,Math.round(num(v.n))); const hasLessons=num(v.rate)>0&&n>0; const amount=L.reduce((a,l)=>a+l.amount,0); const date=v.date||today(); el.disabled=true;
     const ok=await safe(async()=>{
       const t=totals(c);
-      await createInvoice(c,[{desc:`${n}x extra les praktiko - ${VEH[c.vehicle]?.name||""}`, amount, sub:`${n} × ${money(rate)} per lesson`}], date, {extraLessons:n, rate});
-      await patch("clients",c.id,{lessonsIncluded:num(c.lessonsIncluded)+n});
-      if(paid>0) await recordPayment(c, paid, date, v.method||"Cash", "Extra lessons", {total:t.total+amount, paid:t.paid});
-    }, `${n} extra lesson${n>1?"s":""} added · invoice created`);
+      await createInvoice(c, L.map(({n,...l})=>l), date, hasLessons?{extraLessons:n, rate:num(v.rate)}:{});
+      if(hasLessons) await patch("clients",c.id,{lessonsIncluded:num(c.lessonsIncluded)+n});
+      if(paid>0) await recordPayment(c, paid, date, v.method||"Cash", "Extra costs", {total:t.total+amount, paid:t.paid});
+    }, "Invoice created · "+money(amount));
     if(ok) closeModal(); else el.disabled=false; },
   saveCharge: async (ds,el)=>{ const v=formVals($("#chf")); const a=num(v.amount); if(a<=0||!v.desc.trim()) return toast("Enter a description and amount"); const c=client(ds.id); el.disabled=true;
     const ok=await safe(async()=>{ const n=Math.round(num(v.lessons)); await createInvoice(c,[{desc:v.desc.trim(),amount:a}],v.date||today(), n>0?{extraLessons:n}:{}); if(n>0) await patch("clients",c.id,{lessonsIncluded:num(c.lessonsIncluded)+n}); },"Invoice created");
@@ -1838,7 +1874,10 @@ const ACT = {
       if(ds.id){ const old=S.lessons.find(l=>l.id===ds.id); const st=v.status||old.status; const nl={...old,...base,status:st};
         await patch("lessons",ds.id,{...base,status:st, reminded:(old.date!==v.date||old.time!==v.time)?false:!!old.reminded});
         await adjustCounts(old,nl); }
-      else { const reps=Math.max(1,Number(v.repeat)||1); for(let i=0;i<reps;i++){ const id=uid(); await put("lessons",id,{id,...base,date:addDays(v.date,7*i),status:"planned",reminded:false,createdAt:new Date().toISOString(),by:S.me||""}); } }
+      else { const reps=Math.max(1,Number(v.repeat)||1); const dates=[];
+        for(let i=0;i<reps;i++){ const id=uid(); const dt=addDays(v.date,7*i); dates.push(dt); await put("lessons",id,{id,...base,date:dt,surcharge:th?"":(v.surcharge||""),status:"planned",reminded:false,createdAt:new Date().toISOString(),by:S.me||""}); }
+        if(!th && v.surcharge){ const k=cfg(); const rate=num(v.surcharge==="holiday"?k.holidayCharge:k.sundayCharge); const c=client(v.clientIds[0]);
+          if(c&&rate>0) await createInvoice(c, dates.map(dt=>({desc:(v.surcharge==="holiday"?"Holiday":"Sunday")+" add charge - lesson "+niceDate(dt), amount:rate})), today(), {surcharge:v.surcharge}); } }
     }, ds.id?"Lesson updated":(th?"Theory class scheduled":"Lesson scheduled"));
     if(ok) closeModal(); else el.disabled=false; },
   lessonDelAsk: ()=>{ $("#delZone").innerHTML=`<div class="confirm-box"><b>Delete this lesson?</b><div class="row"><button class="btn danger sm" data-act="lessonDel">Delete</button><button class="btn sm" data-act="delCancel">Keep</button></div></div>`; },
@@ -1916,6 +1955,16 @@ const ACT = {
     if(!pick && !body.token) return toast("Paste the access token first");
     el.disabled=true; try{ S.ig=await hostApi("ig_connect",body); }catch(e){ S.ig={connected:false,error:e.message}; } render(); },
   igDisconnect: async ()=>{ try{ await hostApi("ig_disconnect",{}); S.ig={connected:false}; toast("Instagram disconnected"); }catch(e){ toast(e.message); } render(); },
+  idUpload: async ds=>{ const f=await pickFile("image/*,application/pdf"); if(!f) return; toast("Uploading ID…");
+    await safe(async()=>{ const r=await uploadFile(f,2400); const c=client(ds.id); const docs=[...(c.idDocs||[])]; docs.push({fileId:r.id, type:r.contentType||f.type, label:docs.length===0?"Front":docs.length===1?"Back":"ID "+(docs.length+1), at:today(), by:S.me||""}); await patch("clients",c.id,{idDocs:docs}); },"ID saved"); },
+  idView: ds=>{ const c=client(ds.id); const d=(c.idDocs||[])[Number(ds.v)]; if(!d) return;
+    openModal(`${head(esc(c.name)+" · "+esc(d.label||"ID"), "Uploaded "+esc(niceDate(d.at))+(d.by?" by "+esc(d.by):""))}
+     ${String(d.type).includes("pdf")?`<a class="btn" href="${blobUrl(esc(d.fileId))}" target="_blank" rel="noopener">${ic("file")} Open PDF</a>`:`<img src="${blobUrl(esc(d.fileId))}" alt="ID document" style="width:100%;max-height:65vh;object-fit:contain;border-radius:16px;background:var(--surface-2)">`}
+     <div id="delZone" class="row between"><button class="btn" data-act="idDownload" data-id="${esc(c.id)}" data-v="${esc(ds.v)}">${ic("down")} Download</button><button class="btn danger sm" data-act="idDelAsk" data-id="${esc(c.id)}" data-v="${esc(ds.v)}">${ic("trash")} Delete</button></div>`); },
+  idDownload: async ds=>{ const c=client(ds.id); const d=c.idDocs[Number(ds.v)]; try{ const b=await (await fetch(blobUrl(d.fileId))).blob(); const ext=String(d.type).includes("pdf")?"pdf":String(d.type).includes("png")?"png":"jpg"; saveFile(`ID ${c.name} ${d.label||""}.${ext}`.replace(/[\/\\:*?"<>|]/g,""), b); }catch(e){ toast("Couldn't load the file."); } },
+  idDelAsk: ds=>{ $("#delZone").innerHTML=`<div class="confirm-box" style="width:100%"><b>Delete this ID photo?</b><div class="row"><button class="btn danger sm" data-act="idDel" data-id="${esc(ds.id)}" data-v="${esc(ds.v)}">Delete</button><button class="btn sm" data-act="close">Keep</button></div></div>`; },
+  idDel: async ds=>{ const c=client(ds.id); const docs=[...(c.idDocs||[])]; const [d]=docs.splice(Number(ds.v),1);
+    if(await safe(async()=>{ await patch("clients",c.id,{idDocs:docs}); if(d&&assets) try{ await assets.delete(d.fileId); }catch(x){} },"ID deleted")) closeModal(); },
   passedPhoto: async ds=>{ const f=await pickFile("image/*"); if(!f) return; toast("Uploading…");
     await safe(async()=>{ const r=await uploadFile(f,2000); await patch("clients",ds.id,{photoId:r.id}); S.socialClient=ds.id; S.socialPhoto=r.id; S.socialZoom=1;S.socialX=0;S.socialY=0; S.socialCaption=null; closeModal(); go("social"); },"Photo added · check the post"); },
   socialPhoto: async ()=>{ const f=await pickFile("image/*"); if(!f) return; toast("Uploading…"); await safe(async()=>{ const r=await uploadFile(f,2000); S.socialPhoto=r.id; S.socialZoom=1;S.socialX=0;S.socialY=0; const c=client(S.socialClient); if(c) await patch("clients",c.id,{photoId:r.id}); render(); },"Photo added"); },
@@ -1924,7 +1973,7 @@ const ACT = {
   socialCopy: ()=> copy($("#socCap").value,"Caption copied"),
   socialPosted: ()=>{ const c=client(S.socialClient); safe(()=>patch("clients",c.id,{posted:!c.posted,postedAt:!c.posted?today():""}), !c.posted?"Marked as posted":"Marked as not posted"); },
   saveSettings: async ()=>{ const v=formVals($("#setForm")); const prices={}; Object.keys(VEH).forEach(k=>prices[k]=[0,1,2,3].map(i=>num(v[`p_${k}_${i}`])));
-    const p={business:v.business,phone:v.phone,address:v.address,email:v.email,kvk:v.kvk,crib:v.crib,bank:v.bank,invoicePrefix:(v.invoicePrefix||"TA").trim(),obRate:num(v.obRate),obBasis:v.obBasis,reminder:v.reminder,caption:v.caption,prices,extraRates:Object.fromEntries(Object.keys(VEH).map(k=>[k,v[`x_${k}`]===""?"":num(v[`x_${k}`])]))};
+    const p={business:v.business,phone:v.phone,address:v.address,email:v.email,kvk:v.kvk,crib:v.crib,bank:v.bank,invoicePrefix:(v.invoicePrefix||"TA").trim(),obRate:num(v.obRate),obBasis:v.obBasis,reminder:v.reminder,caption:v.caption,prices,sundayCharge:num(v.sundayCharge),holidayCharge:num(v.holidayCharge),bookPrice:num(v.bookPrice),extraRates:Object.fromEntries(Object.keys(VEH).map(k=>[k,v[`x_${k}`]===""?"":num(v[`x_${k}`])]))};
     await safe(()=>saveSettings(p),"Settings saved"); },
   tplUpload: async ()=>{ const f=await pickFile("image/png,image/jpeg"); if(!f) return; toast("Uploading template…");
     let info; try{ info=await analyzeTemplate(f); }catch(e){ return toast("That image couldn't be read. Use a PNG or JPG."); }
@@ -1994,7 +2043,9 @@ document.addEventListener("change", e=>{
   else if(k==="tplSet"){ const key=e.target.dataset.k; const val= e.target.type==="checkbox"? e.target.checked : (["photoRadius","nameY","nameSize"].includes(key)? num(v) : v); safe(()=>saveSettings({[key]:val})); }
   else if(k==="socialClient"){ S.socialCaption=null; S.socialClient=v||null; const c=client(v); S.socialPhoto=c?.photoId||null; S.socialZoom=1;S.socialX=0;S.socialY=0; render(); }
   else if(k==="lessonClient"){ const c=client(v); if(c){ if($("#l_v")) $("#l_v").value=c.vehicle; $("#l_i").value=c.instructor||$("#l_i").value; } lessonCheck(); }
-  else if(k==="lessonCheck") lessonCheck();
+  else if(k==="lessonCheck"){ lessonCheck(); const sc=$("#l_sc"); if(sc && e.target.id==="l_d" && !sc.dataset.touched){ sc.value = parseYmd(v).getDay()===0 ? "sunday" : (sc.value==="sunday"?"":sc.value); } }
+  else if(k==="lessonSurcharge"){ e.target.dataset.touched="1"; }
+  else if(k==="wizBook") wizLeft();
 });
 try{ if(matchMedia("(prefers-reduced-motion: reduce)").matches) document.querySelector(".city")?.pauseAnimations(); }catch(e){}
 boot();
